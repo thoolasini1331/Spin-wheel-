@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spin the Wheel — Game Show</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Spin the Wheel</h1>
+    <div class="top-actions">
+      <button id="fullscreenBtn" title="Full screen">⛶</button>
+      <button id="soundToggle" title="Sound On/Off">🔊</button>
+      <button id="openEntriesPanel">Entries ⚙️</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="left">
+      <div class="wheel-wrap">
+        <canvas id="wheel" width="600" height="600" aria-label="Spin wheel"></canvas>
+        <div class="pointer" aria-hidden="true">▼</div>
+      </div>
+
+      <div class="controls">
+        <button id="spinBtn" class="spin">SPIN NOW</button>
+        <button id="resetBtn" class="reset">RESET</button>
+        <button id="removeWinnerToggle" class="tiny">Remove Winner</button>
+        <button id="replayBtn" class="tiny">Replay Celebration</button>
+      </div>
+    </section>
+
+    <aside class="right">
+      <div class="panel">
+        <h2>Selected</h2>
+        <div id="selectedInfo" class="selectedInfo">No spin yet</div>
+        <div class="selected-actions">
+          <a id="openLinkBtn" class="openLink hidden" target="_blank" rel="noopener">OPEN SELECTED LINK 🔗</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>History</h2>
+        <div id="history" class="history"></div>
+        <div class="history-actions">
+          <button id="clearHistory" class="tiny">Clear History</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Audio / Celebration</h2>
+        <label class="row">Custom celebration audio:
+          <input type="file" id="celebrationFile" accept="audio/*">
+        </label>
+        <div class="row small">
+          <label>Spinning tick volume <input type="range" id="tickVolume" min="0" max="1" step="0.01" value="0.3"></label>
+        </div>
+        <div class="row small">
+          <label>Celebration volume <input type="range" id="celebrationVolume" min="0" max="1" step="0.01" value="0.7"></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>About</h2>
+        <p>Manage entries and links in the Entries panel (⚙️). Wheel updates instantly. Works offline & uses localStorage.</p>
+        <p class="muted">Designed for GitHub Pages. Uses Canvas + WebAudio; no external libraries required.</p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Entries Panel (modal / drawer) -->
+  <div id="entriesPanel" class="entriesPanel hidden" role="dialog" aria-modal="true">
+    <div class="entriesInner">
+      <header>
+        <h2>Entries</h2>
+        <button id="closeEntries">Close ✕</button>
+      </header>
+
+      <form id="entryForm" class="entryForm">
+        <input id="entryTitle" placeholder="Name / Title" required>
+        <input id="entryURL" placeholder="URL (optional)" type="url">
+        <button type="submit">Add / Update</button>
+      </form>
+
+      <div class="entriesListWrap">
+        <ul id="entriesList" class="entriesList"></ul>
+      </div>
+
+      <div class="entriesFooter">
+        <button id="clearEntries" class="tiny danger">Clear All</button>
+        <div class="muted small">Entries saved in your browser localStorage.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winner Overlay -->
+  <div id="winnerOverlay" class="winnerOverlay hidden">
+    <div class="winnerCard">
+      <h2 id="congratsTitle">CONGRATULATIONS! 🎉</h2>
+      <div id="winnerName" class="winnerName"></div>
+      <div class="winnerButtons">
+        <a id="openLinkLarge" class="openLink large" target="_blank" rel="noopener">OPEN SELECTED LINK 🔗</a>
+        <button id="closeWinner" class="tiny">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas for confetti/fireworks overlay -->
+  <canvas id="effectsCanvas" class="effectsCanvas" aria-hidden="true"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
