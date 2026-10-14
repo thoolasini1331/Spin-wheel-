@@ -1,102 +1,837 @@
-:root{
-  --bg:#0f1724;
-  --card:#0b1220;
-  --accent:#ff4d4d;
-  --muted:#9aa7b2;
-  --glass: rgba(255,255,255,0.03);
-  --accent2: #ffd166;
-  --glass2: rgba(255,255,255,0.02);
-  --shadow: 0 6px 18px rgba(2,6,23,0.6);
-}
+/* Oasis Recovery - Spin The Wheel
+   - Canvas-based wheel with 3D look
+   - Mechanical clicks synchronized to segment boundaries using Web Audio API
+   - Background music (synth or user-upload)
+   - Winner popup with confetti/fireworks and cheering audio (upload)
+   - Entries stored in localStorage
+*/
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  background: radial-gradient(circle at 10% 10%, #071028 0%, var(--bg) 50%);
-  color:#e6eef6;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
+(() => {
+  // Utilities
+  const $ = (s) => document.querySelector(s);
+  const qs = (s) => Array.from(document.querySelectorAll(s));
 
-/* Topbar */
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-}
-.topbar h1{margin:0;font-size:18px;letter-spacing:0.6px}
-.top-actions button{margin-left:10px;padding:8px;border-radius:8px;background:var(--glass);color:inherit;border:0;cursor:pointer}
+  // Elements
+  const canvas = $('#wheelCanvas');
+  const effectsCanvas = $('#effectsCanvas');
+  const ctx = canvas.getContext('2d');
+  const eCtx = effectsCanvas.getContext('2d');
+  const spinBtn = $('#spinBtn');
+  const spinAgainBtn = $('#spinAgainBtn');
+  const resetBtn = $('#resetBtn');
+  const pointerEl = $('#pointer');
+  const entryForm = $('#entryForm');
+  const entryName = $('#entryName');
+  const entryURL = $('#entryURL');
+  const entryColor = $('#entryColor');
+  const entriesList = $('#entriesList');
+  const restoreDefaultsBtn = $('#restoreDefaultsBtn');
+  const historyList = $('#historyList');
+  const clearHistoryBtn = $('#clearHistoryBtn');
+  const winnerModal = $('#winnerModal');
+  const winnerNameEl = $('#winnerName');
+  const openLinkBtn = $('#openLinkBtn');
+  const closeWinnerBtn = $('#closeWinnerBtn');
+  const bgUpload = $('#bgUpload');
+  const cheerUpload = $('#cheerUpload');
+  const soundToggle = $('#soundToggle');
+  const musicToggle = $('#musicToggle');
+  const fullscreenBtn = $('#fullscreenBtn');
 
-/* Layout */
-.main{
-  display:flex;
-  gap:20px;
-  padding:20px;
-  flex:1;
-}
-.left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-.right{width:320px;max-width:40%;min-width:260px}
+  // Colors
+  const COLORS = ['#063D22', '#D4A72C', '#F3E4C5']; // deep green, gold, cream
 
-/* Wheel */
-.wheel-wrap{position:relative;width:100%;max-width:600px;display:flex;align-items:center;justify-content:center}
-canvas#wheel{border-radius:50%;box-shadow:var(--shadow);background:transparent;display:block;width:100%;height:auto;max-width:600px}
-.pointer{
-  position:absolute;top:8px;left:50%;transform:translateX(-50%);
-  font-size:44px;color:var(--accent2);
-  text-shadow: 0 6px 14px rgba(0,0,0,0.6);
-  pointer-events:none;
-}
+  // State
+  let dpr = Math.max(1, window.devicePixelRatio || 1);
+  let width = 1200, height = 700;
+  let center = {x: width/2, y: height/2};
+  let radius = Math.min(width, height) * 0.38;
+  let entries = [];
+  let history = [];
+  const STORAGE_KEY = 'oasis_wheel_entries_v1';
+  const HISTORY_KEY = 'oasis_wheel_history_v1';
+  const DEFAULT_ENTRIES = [
+    {name:'Group Therapy Session', url:'https://example.com/group', color:'#063D22'},
+    {name:'Mindful Walk', url:'https://example.com/walk', color:'#D4A72C'},
+    {name:'Counselling Resource', url:'https://example.com/counsel', color:'#F3E4C5'},
+    {name:'Creative Workshop', url:'https://example.com/art', color:'#063D22'},
+    {name:'Wellness Kit', url:'https://example.com/kit', color:'#D4A72C'},
+    {name:'Volunteer Opportunity', url:'https://example.com/volunteer', color:'#F3E4C5'}
+  ];
 
-/* Controls */
-.controls{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-button.spin{padding:14px 28px;border-radius:14px;background:linear-gradient(90deg,#ff6b6b,#ffd166);border:0;color:#05202a;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(255, 102, 102, 0.18)}
-button.reset{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 16px;border-radius:12px;cursor:pointer}
-.tiny{background:var(--glass);padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
-.tiny.danger{background:linear-gradient(90deg,#6b1f1f,#c83232)}
+  // Wheel geometry
+  let nSegments = 6;
+  let segAngle = (2*Math.PI)/nSegments;
+  let rotation = 0; // in radians, wheel rotation (clockwise positive)
+  let animating = false;
+  let rafId = null;
 
-.panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:12px;margin-bottom:12px;box-shadow:var(--shadow)}
-.panel h2{margin:0 0 8px 0;font-size:16px}
-.selectedInfo{padding:10px;background:var(--glass2);border-radius:8px;min-height:48px;display:flex;align-items:center;justify-content:center}
-.openLink{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,#4de1a9,#2ea6ff);color:#03101b;text-decoration:none;font-weight:700}
-.openLink.hidden{display:none}
-.openLink.large{display:inline-block;padding:12px 18px;font-size:16px}
+  // Spin animator
+  let spinStart = 0;
+  let spinDuration = 7000; // ms (6-8s)
+  let startRotation = 0;
+  let targetRotation = 0;
 
-/* Entries Panel */
-.entriesPanel{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;z-index:1000}
-.entriesPanel .entriesInner{width:100%;max-width:720px;background:linear-gradient(180deg,#071026,#081228);border-radius:12px;padding:18px}
-.entriesInner header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.entryForm{display:flex;gap:8px;margin-bottom:12px}
-.entryForm input{flex:1;padding:10px;border-radius:10px;border:0;background:var(--glass2);color:inherit}
-.entryForm button{padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,#6bffb3,#6bb8ff);cursor:pointer}
-.entriesList{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto;border-radius:8px}
-.entriesList li{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px dashed rgba(255,255,255,0.02)}
-.entryTitle{font-weight:600}
-.entryUrl{color:var(--muted);font-size:13px;margin-left:6px}
-.entryActions button{margin-left:6px;padding:6px 8px;border-radius:8px;border:0;background:var(--glass);cursor:pointer}
+  // Audio (Web Audio API)
+  let audioCtx = null;
+  let soundEnabled = true;
+  let bgAudioElement = null;
+  let bgGain = null;
+  let masterGain = null;
+  let clickBuffer = null;
+  let cheerBuffer = null;
+  let uploadedBgBuffer = null;
+  let uploadedCheerBuffer = null;
 
-/* Winner overlay */
-.winnerOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,23,0.5), rgba(2,6,23,0.8));z-index:1500}
-.winnerCard{background:linear-gradient(180deg,#07213a,#072a3e);padding:26px;border-radius:18px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,0.6)}
-.winnerName{font-size:28px;font-weight:800;margin:12px 0;color:var(--accent2);text-shadow:0 6px 20px rgba(255,209,102,0.12)}
+  // Effects
+  let particles = [];
+  let fireworks = [];
 
-/* Effects canvas */
-.effectsCanvas{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1400}
+  // Last crossed segment index for clicking
+  let lastSegmentIndex = null;
 
-/* Responsive */
-@media (max-width:900px){
-  .main{flex-direction:column;padding:12px}
-  .right{width:100%;max-width:100%}
-  .wheel-wrap{max-width:420px}
-  .topbar h1{font-size:16px}
-}
-.muted{color:var(--muted);font-size:13px}
-.small{font-size:13px}
-.hidden{display:none}
+  // Initialize canvas sizing
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    width = rect.width * dpr;
+    height = Math.max(420, rect.height) * dpr;
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = (width/dpr)+'px';
+    canvas.style.height = (height/dpr)+'px';
+
+    effectsCanvas.width = window.innerWidth * dpr;
+    effectsCanvas.height = window.innerHeight * dpr;
+    effectsCanvas.style.width = window.innerWidth + 'px';
+    effectsCanvas.style.height = window.innerHeight + 'px';
+
+    center = { x: width/2, y: height/2 + 40*dpr };
+    radius = Math.min(width, height) * 0.38;
+    drawWheel();
+  }
+
+  // Load state
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      entries = raw ? JSON.parse(raw) : DEFAULT_ENTRIES.slice();
+    } catch (e) { entries = DEFAULT_ENTRIES.slice(); }
+    try {
+      history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    } catch (e) { history = []; }
+    rebuildList();
+    rebuildHistory();
+    nSegments = Math.max(1, entries.length);
+    segAngle = (2*Math.PI)/nSegments;
+  }
+
+  function saveEntries() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+  function saveHistory() {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
+
+  // UI: entries management
+  function rebuildList() {
+    entriesList.innerHTML = '';
+    entries.forEach((ent, i) => {
+      const row = document.createElement('div');
+      row.className = 'entry-item';
+      const meta = document.createElement('div'); meta.className = 'entry-meta';
+      const name = document.createElement('div'); name.className='name'; name.textContent = ent.name;
+      const url = document.createElement('div'); url.className='url'; url.textContent = ent.url || '';
+      meta.appendChild(name); meta.appendChild(url);
+      const actions = document.createElement('div'); actions.className='entry-actions';
+      const edit = document.createElement('button'); edit.className='btn small'; edit.textContent='Edit';
+      edit.onclick = ()=>{ entryName.value = ent.name; entryURL.value = ent.url || ''; entryColor.value = ent.color || '#063D22'; addEntryBtn.dataset.editIndex = i; entryName.focus(); };
+      const del = document.createElement('button'); del.className='btn small'; del.textContent='Delete';
+      del.onclick = ()=>{ entries.splice(i,1); nSegments=entries.length; segAngle=(2*Math.PI)/Math.max(1,nSegments); saveEntries(); rebuildList(); drawWheel(); };
+      actions.appendChild(edit); actions.appendChild(del);
+      row.appendChild(meta); row.appendChild(actions);
+      row.style.borderLeft = `6px solid ${ent.color || '#063D22'}`;
+      entriesList.appendChild(row);
+    });
+  }
+
+  const addEntryBtn = $('#addEntryBtn');
+  entryForm.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const name = entryName.value.trim() || 'Untitled';
+    const url = entryURL.value.trim();
+    const color = entryColor.value || '#063D22';
+    const editIndex = addEntryBtn.dataset.editIndex;
+    if (editIndex !== undefined && editIndex !== '') {
+      entries[Number(editIndex)] = {name, url, color};
+      addEntryBtn.dataset.editIndex = '';
+    } else {
+      entries.push({name, url, color});
+    }
+    entryForm.reset();
+    entryColor.value = '#063D22';
+    saveEntries();
+    nSegments = Math.max(1, entries.length);
+    segAngle = (2*Math.PI)/nSegments;
+    rebuildList();
+    drawWheel();
+  });
+
+  restoreDefaultsBtn.addEventListener('click', ()=> {
+    entries = DEFAULT_ENTRIES.slice();
+    saveEntries();
+    nSegments = entries.length; segAngle = (2*Math.PI)/nSegments;
+    rebuildList(); drawWheel();
+  });
+
+  // History
+  function pushHistory(name, url) {
+    const entry = {name, url, time: Date.now()};
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    saveHistory(); rebuildHistory();
+  }
+  function rebuildHistory() {
+    historyList.innerHTML = '';
+    history.forEach(h => {
+      const el = document.createElement('div');
+      el.className = 'history-item';
+      const time = new Date(h.time).toLocaleString();
+      el.textContent = `${h.name} — ${time}`;
+      historyList.appendChild(el);
+    });
+  }
+  clearHistoryBtn.addEventListener('click', ()=> { history=[]; saveHistory(); rebuildHistory(); });
+
+  // Canvas drawing
+  function drawWheel() {
+    ctx.clearRect(0,0,width,height);
+    // Shadows and stage
+    const shadowGrad = ctx.createRadialGradient(center.x, center.y+radius*0.6, radius*0.2, center.x, center.y+radius*0.8, radius*1.6);
+    shadowGrad.addColorStop(0, 'rgba(0,0,0,0.25)');
+    shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = shadowGrad;
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y+radius*0.9, radius*1.1, radius*0.35, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Outer rim (metallic)
+    const rimOuter = radius*1.08;
+    const rimInner = radius*0.94;
+    const rimGrad = ctx.createLinearGradient(center.x - rimOuter, center.y - rimOuter, center.x + rimOuter, center.y + rimOuter);
+    rimGrad.addColorStop(0, '#ffd77f');
+    rimGrad.addColorStop(0.5, '#D4A72C');
+    rimGrad.addColorStop(1, '#b5871f');
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, rimOuter, 0, Math.PI*2);
+    ctx.fillStyle = rimGrad;
+    ctx.fill();
+
+    // Decorative lights around rim
+    const lightsN = Math.max(18, nSegments*3);
+    for (let i=0;i<lightsN;i++){
+      const a = (i/lightsN) * Math.PI*2 + rotation*0.08;
+      const px = center.x + Math.cos(a)*rimOuter*0.86;
+      const py = center.y + Math.sin(a)*rimOuter*0.86;
+      const g = ctx.createRadialGradient(px,py,2,px,py,14);
+      g.addColorStop(0, 'rgba(255,240,200,0.95)');
+      g.addColorStop(1, 'rgba(212,167,44,0.14)');
+      ctx.beginPath();
+      ctx.fillStyle = g;
+      ctx.arc(px,py,8,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // Wheel surface (segments)
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.rotate(rotation);
+    for (let i=0;i<nSegments;i++){
+      const angle0 = i*segAngle;
+      // Choose color: use entry color if provided otherwise cycle predefined
+      const ent = entries[i] || {};
+      const fill = ent.color || COLORS[i % COLORS.length];
+      // draw segment with radial gradient to simulate texture
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,radius, angle0, angle0+segAngle);
+      ctx.closePath();
+      const grad = ctx.createRadialGradient(0,0, radius*0.2, 0,0, radius);
+      grad.addColorStop(0, shade(fill, 0.14));
+      grad.addColorStop(0.6, fill);
+      grad.addColorStop(1, shade(fill, -0.08));
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // draw inner bevel
+      ctx.beginPath();
+      ctx.arc(0,0, radius*0.78, angle0, angle0+segAngle);
+      ctx.lineTo(0,0);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fill();
+
+      // Text
+      ctx.save();
+      ctx.fillStyle = (getLuminance(fill) < 0.5) ? '#F7F5EF':'#063D22';
+      ctx.font = `${18 * dpr}px "Times New Roman", Times, serif`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.translate(Math.cos(angle0 + segAngle/2) * (radius*0.58), Math.sin(angle0 + segAngle/2) * (radius*0.58));
+      ctx.rotate(angle0 + segAngle/2 + Math.PI/2);
+      const label = (entries[i] && entries[i].name) ? entries[i].name : `Entry ${i+1}`;
+      ctx.fillText(label, -10 * dpr, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // center hub
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius*0.18, 0, Math.PI*2);
+    const hubGrad = ctx.createLinearGradient(center.x - radius*0.18, center.y - radius*0.18, center.x + radius*0.18, center.y + radius*0.18);
+    hubGrad.addColorStop(0, '#fff7e7');
+    hubGrad.addColorStop(0.6, '#FFDFA6');
+    hubGrad.addColorStop(1, '#b68a1d');
+    ctx.fillStyle = hubGrad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius*0.12, 0, Math.PI*2);
+    ctx.fillStyle = '#063D22';
+    ctx.fill();
+
+    // glossy reflection
+    ctx.beginPath();
+    ctx.ellipse(center.x - radius*0.25, center.y - radius*0.45, radius*0.36, radius*0.12, Math.PI/6, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fill();
+
+    // pointer shadow/shine
+    // small drop shadow under pointer
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y - radius - 28*dpr, 24*dpr, 8*dpr, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fill();
+  }
+
+  // color helpers
+  function shade(hex, percent) {
+    const c = hexToRgb(hex);
+    const f = (n) => Math.max(0, Math.min(255, Math.round(n + (percent*255))));
+    return `rgb(${f(c.r)},${f(c.g)},${f(c.b)})`;
+  }
+  function hexToRgb(hex) {
+    const h = hex.replace('#','');
+    return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
+  }
+  function getLuminance(hex) {
+    const c = hexToRgb(hex);
+    const [r,g,b] = [c.r/255,c.g/255,c.b/255].map(v=> v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*r + 0.7152*g + 0.0722*b;
+  }
+
+  // Spin logic: choose a final index and animate rotation to land there
+  function startSpin() {
+    if (animating) return;
+    if (!entries || entries.length === 0) return alert('No entries available.');
+    ensureAudioUnlocked();
+
+    // Choose index uniformly among entries
+    const chosenIndex = Math.floor(Math.random()*entries.length);
+    // Add extra randomness inside the segment so pointer will land visually inside
+    const randomOffset = (Math.random()*0.9 + 0.05) * segAngle;
+    // Want to rotate clockwise so wheel rotates forward (positive)
+    const fullRotations = Math.floor(Math.random()*3) + 4; // around 4-6 full spins
+    // Because wheel rotates visually, to land chosenIndex at pointer (top), targetRotation must be computed accordingly:
+    // pointer angle corresponds to -rotation (canvas rotated). We compute target such that segment center aligns to pointer top.
+    const segmentCenterAngle = chosenIndex*segAngle + segAngle/2;
+    // targetRotation is such that rotation + segmentCenterAngle = 3*pi/2 (top pointer at -90deg) OR equivalently rotation = -segmentCenterAngle (mod 2pi).
+    // We'll set targetRotation = fullRotations*2pi + (Math.PI*1.5 - segmentCenterAngle) to have some tilt
+    const topPointerAngle = -Math.PI/2; // pointer at top; alignment when rotated so that segmentCenterAngle + rotation = -pi/2 -> rotation = -pi/2 - segmentCenterAngle
+    const base = -Math.PI/2 - segmentCenterAngle + randomOffset;
+    const total = fullRotations * Math.PI*2 + base;
+    startRotation = rotation;
+    targetRotation = rotation + total;
+    spinDuration = 6000 + Math.random()*2000; // 6-8s
+    spinStart = performance.now();
+    animating = true;
+    spinAgainBtn.style.display = 'none';
+    spinBtn.disabled = true;
+    lastSegmentIndex = getSegmentIndexFromRotation(rotation);
+    // start animation loop
+    if (!rafId) rafId = requestAnimationFrame(animateSpin);
+
+    // keep reference to chosen index to show when finished
+    currentSpin.chosenIndex = chosenIndex;
+    currentSpin.startTime = Date.now();
+  }
+
+  const currentSpin = { chosenIndex: null, startTime:0 };
+
+  function animateSpin(ts) {
+    if (!animating) { rafId=null; return; }
+    const elapsed = ts - spinStart;
+    const t = Math.min(1, elapsed/spinDuration);
+    // easeOutCubic
+    const eased = 1 - Math.pow(1 - t, 3);
+    rotation = startRotation + (targetRotation - startRotation) * eased;
+    // keep rotation within manageable range
+    if (Math.abs(rotation) > 1e6) rotation = rotation % (Math.PI*2);
+
+    // detect segment crossings for clicks
+    const segIdx = getSegmentIndexFromRotation(rotation);
+    if (segIdx !== lastSegmentIndex) {
+      // Play click (synchronized to boundaries)
+      if (soundEnabled && (audioCtx)) playClick();
+      lastSegmentIndex = segIdx;
+    }
+
+    drawWheel();
+    if (t < 1) {
+      rafId = requestAnimationFrame(animateSpin);
+    } else {
+      // finished
+      animating = false;
+      rafId = null;
+      rotation = targetRotation; // snap
+      showWinner(currentSpin.chosenIndex);
+      spinAgainBtn.style.display='inline-block';
+      spinBtn.disabled = false;
+    }
+  }
+
+  // calculate which segment is at the pointer top based on rotation
+  function getSegmentIndexFromRotation(rot) {
+    // Top pointer corresponds to angle -pi/2. The segment whose center is closest to -pi/2 - rot is selected.
+    const angleAtPointer = (-rotation - Math.PI/2) % (Math.PI*2);
+    // Normalize
+    let a = angleAtPointer;
+    if (a < 0) a += Math.PI*2;
+    let idx = Math.floor(a / segAngle);
+    // wrap
+    idx = ((idx % nSegments) + nSegments) % nSegments;
+    return idx;
+  }
+
+  // Audio initialization and helpers
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain(); masterGain.gain.value = 1;
+    bgGain = audioCtx.createGain(); bgGain.gain.value = 0.25; // low volume
+    masterGain.connect(audioCtx.destination);
+    bgGain.connect(masterGain);
+
+    // click buffer: generate short click using noise + bandpass
+    clickBuffer = createClickBuffer();
+    // default synthesized cheerful applause-like buffer
+    cheerBuffer = createCheerBuffer();
+  }
+
+  function ensureAudioUnlocked() {
+    if (!audioCtx) initAudio();
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function createClickBuffer() {
+    // short mechanical "tak" click made by filtered noise + short envelope
+    const len = audioCtx.sampleRate * 0.03;
+    const buffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d = buffer.getChannelData(0);
+    for (let i=0;i<len;i++){
+      const noise = (Math.random()*2-1) * Math.exp(-i/(len*0.015));
+      d[i] = noise * (1 - i/len);
+    }
+    return buffer;
+  }
+
+  function playClick() {
+    if (!soundToggle.checked) return;
+    const s = audioCtx.createBufferSource();
+    s.buffer = clickBuffer;
+    const gain = audioCtx.createGain(); gain.gain.value = 0.7;
+    s.connect(gain);
+    // apply slight bandpass to make it metallic
+    const bp = audioCtx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=0.7;
+    gain.connect(bp); bp.connect(masterGain);
+    s.start();
+    // stop after buffer length
+    setTimeout(()=>{ try { s.stop(); } catch(e){} }, 80);
+  }
+
+  function createCheerBuffer() {
+    // generate a short positive synth "woo" layered burst to simulate celebration (not real crowd)
+    const lengthSec = 1.8;
+    const len = Math.floor(audioCtx.sampleRate * lengthSec);
+    const buffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d = buffer.getChannelData(0);
+    for (let i=0;i<len;i++){
+      const t = i / audioCtx.sampleRate;
+      // two sine layers with envelope and some noise
+      const env = Math.exp(-3*t) * (1 - Math.exp(-6*t));
+      const s1 = Math.sin(2*Math.PI*220*t) * 0.5;
+      const s2 = Math.sin(2*Math.PI*440*t) * 0.25;
+      const noise = (Math.random()*2-1) * 0.06 * (1 - t/lengthSec);
+      d[i] = (s1 + s2) * env + noise;
+    }
+    return buffer;
+  }
+
+  function playCheer() {
+    if (!soundToggle.checked) return;
+    ensureAudioUnlocked();
+    // prefer uploaded cheerBuffer if present
+    const buf = uploadedCheerBuffer || cheerBuffer;
+    const s = audioCtx.createBufferSource();
+    s.buffer = buf;
+    const g = audioCtx.createGain(); g.gain.value = 1.0;
+    s.connect(g); g.connect(masterGain);
+    s.start();
+  }
+
+  function setBackgroundFromFile(file) {
+    // Use audio element + createMediaElementSource or decode to buffer
+    if (!file) return;
+    if (bgAudioElement) {
+      bgAudioElement.pause(); bgAudioElement.src = '';
+    }
+    const url = URL.createObjectURL(file);
+    bgAudioElement = new Audio(url);
+    bgAudioElement.loop = true;
+    bgAudioElement.preload = 'auto';
+    ensureAudioUnlocked();
+    // connect element to audioCtx for volume control
+    const elSrc = audioCtx.createMediaElementSource(bgAudioElement);
+    elSrc.connect(bgGain);
+    bgAudioElement.volume = 0.4;
+    // Start playing only when user toggles music or after explicit interaction
+  }
+
+  function decodeUploadedAudio(file, cb) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (!audioCtx) initAudio();
+      audioCtx.decodeAudioData(ev.target.result).then((buffer)=>{
+        cb(null, buffer);
+      }).catch(err => cb(err));
+    };
+    reader.onerror = (err) => cb(err);
+    reader.readAsArrayBuffer(file);
+  }
+
+  // Winner display and effects
+  function showWinner(index) {
+    const ent = entries[index];
+    const name = ent ? ent.name : `Entry ${index+1}`;
+    const url = ent && ent.url ? ent.url : null;
+    winnerNameEl.textContent = name;
+    openLinkBtn.onclick = () => { if (url) window.open(url, '_blank'); };
+    winnerModal.setAttribute('aria-hidden','false');
+    // confetti + fireworks for 5-8 seconds
+    launchConfetti();
+    launchFireworks();
+    // play cheer
+    // temporarily reduce background music volume
+    if (audioCtx && bgGain) {
+      const prev = bgGain.gain.value;
+      bgGain.gain.setTargetAtTime(prev*0.2, audioCtx.currentTime, 0.05);
+      playCheer();
+      setTimeout(()=>{ if (bgGain) bgGain.gain.setTargetAtTime(prev, audioCtx.currentTime, 0.6); }, 6000);
+    } else {
+      playCheer();
+    }
+    pushHistory(name, url);
+    // optionally offer remove selected entry
+    // show option to remove selected entry within modal (not implemented as button by requirement - add below)
+    // auto hide after 6s if user doesn't close
+    setTimeout(()=>{ /* keep shown; user closes */ }, 6000);
+  }
+
+  closeWinnerBtn.addEventListener('click', ()=>{ hideWinner(); });
+
+  function hideWinner() {
+    winnerModal.setAttribute('aria-hidden','true');
+    clearAllEffects();
+  }
+
+  // Effects: confetti & fireworks
+  function launchConfetti() {
+    // spawn many confetti pieces
+    const count = 120;
+    for (let i=0;i<count;i++){
+      particles.push({
+        x: Math.random()*effectsCanvas.width,
+        y: -10 * dpr,
+        vx: (Math.random()-0.5)*3*dpr,
+        vy: (1.5 + Math.random()*2.5)*dpr,
+        size: (4+Math.random()*8)*dpr,
+        color: COLORS[Math.floor(Math.random()*COLORS.length)],
+        rot: Math.random()*Math.PI*2,
+        vr: (Math.random()-0.5)*0.3
+      });
+    }
+    // animate for ~6s
+    animateEffects(6000);
+  }
+
+  function launchFireworks() {
+    // spawn several fireworks bursts
+    const bursts = 6;
+    for (let i=0;i<bursts;i++){
+      setTimeout(()=> {
+        fireworks.push({
+          x: Math.random()*effectsCanvas.width*0.8 + effectsCanvas.width*0.1,
+          y: Math.random()*effectsCanvas.height*0.4 + effectsCanvas.height*0.05,
+          particles: createFireworkParticles()
+        });
+      }, i*300);
+    }
+    animateEffects(7000);
+  }
+
+  function createFireworkParticles() {
+    const p = [];
+    const n = 20 + Math.floor(Math.random()*30);
+    for (let i=0;i<n;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = 2 + Math.random()*6;
+      p.push({
+        x:0, y:0,
+        vx: Math.cos(angle)*speed*dpr,
+        vy: Math.sin(angle)*speed*dpr,
+        life: 60 + Math.random()*60,
+        color: COLORS[Math.floor(Math.random()*COLORS.length)]
+      });
+    }
+    return p;
+  }
+
+  let effectsAnimId = null;
+  let effectsEndAt = 0;
+  function animateEffects(duration = 5000) {
+    effectsEndAt = Date.now() + duration;
+    if (!effectsAnimId) effectsAnimId = requestAnimationFrame(stepEffects);
+  }
+
+  function stepEffects() {
+    const now = Date.now();
+    const dt = 1/60;
+    eCtx.clearRect(0,0,effectsCanvas.width,effectsCanvas.height);
+    // update particles
+    for (let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.06*dpr;
+      p.rot += p.vr;
+      p.size *= 0.997;
+      // draw
+      eCtx.save();
+      eCtx.translate(p.x, p.y);
+      eCtx.rotate(p.rot);
+      eCtx.fillStyle = p.color;
+      eCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      eCtx.restore();
+      if (p.y > effectsCanvas.height + 40*dpr) particles.splice(i,1);
+    }
+    // fireworks
+    for (let i=fireworks.length-1;i>=0;i--){
+      const fw = fireworks[i];
+      // draw core
+      for (let j=fw.particles.length-1;j>=0;j--){
+        const pr = fw.particles[j];
+        // update
+        pr.x += pr.vx;
+        pr.y += pr.vy;
+        pr.vy += 0.04*dpr; pr.vx *= 0.997;
+        pr.life--;
+        eCtx.fillStyle = pr.color;
+        eCtx.fillRect(fw.x + pr.x, fw.y + pr.y, 3*dpr, 3*dpr);
+        if (pr.life <=0) fw.particles.splice(j,1);
+      }
+      if (fw.particles.length === 0) fireworks.splice(i,1);
+    }
+
+    if (Date.now() < effectsEndAt || particles.length>0 || fireworks.length>0) {
+      effectsAnimId = requestAnimationFrame(stepEffects);
+    } else {
+      effectsAnimId = null;
+      eCtx.clearRect(0,0,effectsCanvas.width,effectsCanvas.height);
+    }
+  }
+
+  function clearAllEffects() {
+    particles = [];
+    fireworks = [];
+    if (effectsAnimId) { cancelAnimationFrame(effectsAnimId); effectsAnimId = null; }
+    eCtx.clearRect(0,0,effectsCanvas.width,effectsCanvas.height);
+  }
+
+  // Reset
+  function doReset() {
+    // stop animations
+    animating = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    rotation = 0;
+    lastSegmentIndex = getSegmentIndexFromRotation(rotation);
+    drawWheel();
+    // stop effects
+    clearAllEffects();
+    // hide winner
+    winnerModal.setAttribute('aria-hidden','true');
+    // stop any audio sources if playing via element
+    if (bgAudioElement) { try { bgAudioElement.pause(); bgAudioElement.currentTime = 0; } catch(e){} }
+    // stop all audio nodes by creating fresh audio context? We'll just resume/leave as is.
+    spinBtn.disabled = false;
+    spinAgainBtn.style.display='none';
+  }
+
+  // Fullscreen
+  fullscreenBtn.addEventListener('click', ()=> {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // Effects: resize
+  window.addEventListener('resize', ()=> {
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    resizeCanvas();
+  });
+
+  // DOM interactions
+  spinBtn.addEventListener('click', startSpin);
+  spinAgainBtn.addEventListener('click', ()=>{
+    if (animating) return;
+    hideWinner();
+    startSpin();
+  });
+  resetBtn.addEventListener('click', doReset);
+
+  // music toggle icon
+  musicToggle.addEventListener('click', ()=> {
+    ensureAudioUnlocked();
+    if (!bgAudioElement) {
+      // start default soft ambient synth if no uploaded file
+      startAmbientBackground();
+      musicToggle.setAttribute('aria-pressed','true');
+      musicToggle.style.color = '#9ff0c7';
+      return;
+    }
+    if (bgAudioElement.paused) {
+      bgAudioElement.play().catch(()=>{ /* may be blocked until user interacts */ });
+      musicToggle.setAttribute('aria-pressed','true');
+      musicToggle.style.color = '#9ff0c7';
+    } else {
+      bgAudioElement.pause();
+      musicToggle.setAttribute('aria-pressed','false');
+      musicToggle.style.color = 'var(--gold)';
+    }
+  });
+
+  // sound on/off
+  soundToggle.addEventListener('change', ()=> { soundEnabled = soundToggle.checked; });
+
+  // file uploads
+  bgUpload.addEventListener('change', (e)=> {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    // decode into audio buffer and set background
+    ensureAudioUnlocked();
+    decodeUploadedAudio(f, (err, buffer) => {
+      if (err) { alert('Unable to load background audio file'); return; }
+      uploadedBgBuffer = buffer;
+      // create or replace bgAudioElement playback from buffer via AudioBufferSource (loop)
+      if (!audioCtx) initAudio();
+      // stop previous
+      if (bgAudioElement) { try { bgAudioElement.pause(); } catch(e) {} bgAudioElement = null; }
+      // create bufferSource that loops by recreating source as needed
+      const startBgFromBuffer = () => {
+        if (!uploadedBgBuffer) return;
+        if (bgAudioElement) return;
+        const src = audioCtx.createBufferSource();
+        src.buffer = uploadedBgBuffer;
+        src.loop = true;
+        src.connect(bgGain);
+        src.start();
+        // keep reference so we can stop it on reset
+        bgAudioElement = { stop: ()=>{ try{ src.stop(); }catch(e){} }, isSynthetic:true };
+      };
+      startBgFromBuffer();
+      musicToggle.setAttribute('aria-pressed','true');
+      musicToggle.style.color = '#9ff0c7';
+    });
+  });
+
+  cheerUpload.addEventListener('change', (e)=> {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    ensureAudioUnlocked();
+    decodeUploadedAudio(f, (err, buffer) => {
+      if (err) { alert('Unable to load cheering audio file'); return; }
+      uploadedCheerBuffer = buffer;
+      alert('Cheering audio uploaded and ready to use.');
+    });
+  });
+
+  // Accessibility keyboard for music toggle
+  musicToggle.addEventListener('keydown', (ev)=> {
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); musicToggle.click(); }
+  });
+
+  // Winner modal open link
+  openLinkBtn.addEventListener('click', ()=> {
+    // handled when building showWinner
+  });
+
+  // helper to start a gentle ambient synth for background if user didn't upload music
+  let ambientNodes = [];
+  function startAmbientBackground() {
+    ensureAudioUnlocked();
+    if (!audioCtx) return;
+    // simple layered ambient pads: 2 oscillators with slow detune & lowpass
+    const t = audioCtx.currentTime;
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const g1 = audioCtx.createGain();
+    const g2 = audioCtx.createGain();
+    const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800;
+    osc1.type='sine'; osc1.frequency.value=220;
+    osc2.type='sine'; osc2.frequency.value=330;
+    g1.gain.value=0.05; g2.gain.value=0.04;
+    osc1.connect(g1); osc2.connect(g2);
+    g1.connect(lp); g2.connect(lp); lp.connect(bgGain);
+    osc1.start(t); osc2.start(t);
+    ambientNodes = [osc1,osc2,g1,g2,lp];
+    // slight detune sweep
+    osc1.detune.setValueAtTime(0, t);
+    osc1.detune.linearRampToValueAtTime(6, t+10);
+  }
+
+  // Initialization
+  function init() {
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    // ensure canvas container height is large enough
+    resizeCanvas();
+    loadState();
+    drawWheel();
+    // events for clicks on entries: support open url via list rows (not auto redirect)
+    entriesList.addEventListener('click', (e)=> {
+      const node = e.target.closest('.entry-item');
+      if (!node) return;
+    });
+    // initial audio init deferred until first interaction
+    // ensure pointer alignment
+    lastSegmentIndex = getSegmentIndexFromRotation(rotation);
+  }
+
+  // Kick off
+  init();
+
+  // Expose some functions to window for debugging
+  window._oasis = { startSpin, doReset, entries, rebuildList, drawWheel };
+
+})();
