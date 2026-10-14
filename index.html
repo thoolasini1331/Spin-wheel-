@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>OASIS RECOVERY — Spin the Wheel</title>
   <style>
-    /* Brand colors */
     :root{
       --deep-green: #063D22;
       --metallic-gold: #D4A72C;
       --cream: #F3E4C5;
       --off-white: #F7F5EF;
-      --bg-accent: rgba(0,0,0,0.25);
+      --glass: rgba(255,255,255,0.04);
     }
-
-    /* Basic reset */
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
@@ -24,44 +21,30 @@
                   var(--deep-green);
       color: var(--off-white);
       -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:center;
-      padding:24px;
+      padding:28px;
       min-height:100vh;
     }
 
-    .stage {
+    .container {
       width:100%;
-      max-width:1100px;
-      margin:auto;
-      position:relative;
-      padding:28px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:20px;
+      max-width:1200px;
+      margin:24px auto;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:28px;
+      align-items:start;
     }
 
-    /* Decorative curtains / theater feel */
-    .curtain {
-      pointer-events:none;
-      position: absolute;
-      top:0;left:0;right:0;height:100%;
-      background:
-        linear-gradient(90deg, rgba(6,61,34,0.96) 0 10%, rgba(6,61,34,0.6) 40%, rgba(6,61,34,0.8) 60%, rgba(6,61,34,0.96) 100%);
-      z-index:0;
-      mask: radial-gradient(800px 200px at 50% 10%, black 0, transparent 45%);
-    }
-
-    header {
-      width:100%;
+    header{
+      grid-column: 1 / -1;
       text-align:center;
-      z-index:2;
+      margin-bottom:8px;
     }
     h1 {
-      font-size: clamp(20px, 3.2vw, 36px);
+      font-size: clamp(22px, 3.4vw, 36px);
       color: var(--cream);
       font-weight:700;
       font-style:italic;
@@ -69,124 +52,107 @@
       margin-bottom:6px;
       text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 6px 18px rgba(2,2,2,0.6);
     }
-    p.lead {
+    p.subtitle {
       color: var(--off-white);
-      opacity:0.95;
-      margin-bottom:4px;
-      font-style:italic;
       font-weight:700;
-      letter-spacing:0.6px;
+      font-style:italic;
+      margin-bottom:16px;
     }
 
-    /* Wheel area */
-    .wheel-wrap {
-      width:100%;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      position:relative;
+    /* Left column contains the wheel and controls */
+    .left {
+      background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.06));
       padding:18px;
-      z-index:3;
-    }
-
-    .podium {
-      position:absolute;
-      bottom:-6%;
-      width:70%;
-      max-width:640px;
-      height:120px;
-      transform:translateY(60px);
-      background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
-      border-radius: 12px;
-      box-shadow: 0 30px 40px rgba(0,0,0,0.6);
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      pointer-events:none;
-    }
-
-    /* Wheel container for perspective and frame */
-    .wheel-container {
-      width: min(78vmin, 720px);
-      height: min(78vmin, 720px);
-      max-width:720px;
-      max-height:720px;
+      border-radius:12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       position:relative;
+    }
+
+    .wheel-area{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      width:100%;
+    }
+
+    /* Container for wheel with perspective */
+    .wheel-container {
+      width:100%;
+      max-width:720px;
+      aspect-ratio:1/1;
       display:flex;
       align-items:center;
       justify-content:center;
-      transform-style:preserve-3d;
-      perspective:1200px;
+      position:relative;
+      margin:0 auto;
     }
 
-    /* Outer metallic rim */
-    .wheel-rim {
-      position:absolute;
-      inset:0;
+    .wheel-outer {
+      width:92%;
+      height:92%;
       border-radius:50%;
       background:
-        conic-gradient(from 180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.03)),
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06), transparent 6%),
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.05), transparent 6%),
         linear-gradient(180deg, #e7cf66, #b68616);
-      border: 8px solid rgba(0,0,0,0.25);
       box-shadow:
-        inset 0 10px 30px rgba(255,255,255,0.08),
-        inset 0 -12px 40px rgba(0,0,0,0.35),
-        0 20px 50px rgba(0,0,0,0.6);
+        inset 0 12px 30px rgba(255,255,255,0.07),
+        inset 0 -18px 40px rgba(0,0,0,0.45),
+        0 30px 80px rgba(0,0,0,0.6);
+      position:absolute;
       display:flex;
       align-items:center;
       justify-content:center;
-      z-index:4;
+      z-index:5;
     }
 
-    /* gold bead ring for lights */
-    .bead-ring {
+    /* Rotating element */
+    .wheel-spin {
+      width:88%;
+      height:88%;
+      border-radius:50%;
+      position:relative;
+      transform-origin:center center;
+      transition: transform 0.6s cubic-bezier(.1,.9,.2,1);
+      will-change: transform;
+      z-index:6;
+      overflow:visible;
+    }
+
+    /* face uses conic-gradient dynamically set */
+    .wheel-face {
       position:absolute;
       inset:6%;
       border-radius:50%;
-      display:grid;
-      place-items:center;
-      pointer-events:none;
-    }
-
-    .bulb {
-      --size:12px;
-      width:var(--size);
-      height:var(--size);
-      border-radius:50%;
-      background: radial-gradient(circle at 30% 30%, #fff 0 18%, var(--metallic-gold) 24%, #8a6a14 65%);
-      box-shadow: 0 0 8px rgba(212,167,44,0.9), 0 1px 2px rgba(0,0,0,0.5);
-      transform-origin: center;
-      filter: saturate(1.05);
-    }
-
-    /* Wheel face with segments created via conic-gradient */
-    .wheel-face {
-      --segments: 12;
-      position:absolute;
-      inset:14%;
-      border-radius:50%;
-      background:
-        conic-gradient(
-          #063D22 0deg calc(360deg/var(--segments) ),
-          #D4A72C calc(360deg/var(--segments)) calc(2*360deg/var(--segments))
-        );
-      background-size: 100% 100%;
       box-shadow:
-        inset 0 22px 40px rgba(255,255,255,0.06),
-        inset 0 -24px 40px rgba(0,0,0,0.5),
-        0 20px 40px rgba(0,0,0,0.5);
+        inset 0 20px 30px rgba(255,255,255,0.04),
+        inset 0 -22px 40px rgba(0,0,0,0.45),
+        0 18px 60px rgba(0,0,0,0.5);
       display:block;
-      transform: translateZ(40px);
-      overflow:visible;
-      z-index:6;
+      z-index:7;
     }
 
-    /* center hub */
+    .segment-label {
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform-origin: 0 0;
+      font-weight:700;
+      font-style:italic;
+      font-size: clamp(11px, 1.6vw, 18px);
+      color: var(--off-white);
+      text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+      pointer-events:none;
+      white-space:nowrap;
+      text-align:center;
+      padding:2px 6px;
+      z-index:10;
+    }
+
     .hub {
       position:absolute;
-      width:22%;
-      height:22%;
+      width:18%;
+      height:18%;
       border-radius:50%;
       background: linear-gradient(180deg,#b98f2a,#5a3a0e);
       display:flex;
@@ -195,53 +161,24 @@
       color:var(--cream);
       font-weight:700;
       font-style:italic;
-      font-size: clamp(12px, 1.4vw, 20px);
+      font-size: clamp(12px, 1.6vw, 20px);
       text-align:center;
       box-shadow: 0 8px 18px rgba(0,0,0,0.6), inset 0 4px 10px rgba(255,255,255,0.05);
-      z-index:8;
-      transform: translateZ(80px);
+      z-index:12;
     }
 
-    /* rotating wheel element wrapper (we rotate this) */
-    .wheel-spin {
-      position:absolute;
-      width:100%;
-      height:100%;
-      border-radius:50%;
-      transform-origin:center center;
-      transition: transform 1s cubic-bezier(.1,.9,.2,1);
-      will-change: transform;
-    }
-
-    /* labels positioned via JS */
-    .label {
-      position:absolute;
-      left:50%;
-      top:6%;
-      transform-origin: 0 50%;
-      color:var(--cream);
-      text-shadow: 0 2px 0 rgba(0,0,0,0.6);
-      font-weight:700;
-      font-style:italic;
-      font-size: clamp(10px, 1.4vw, 16px);
-      letter-spacing:0.6px;
-      white-space:nowrap;
-      padding:4px 8px;
-      pointer-events:none;
-    }
-
-    /* pointer (top) */
+    /* fixed pointer at top */
     .pointer {
       position:absolute;
-      top:2.6%;
+      top:6%;
       left:50%;
       transform:translateX(-50%);
       width:0;height:0;
-      border-left:18px solid transparent;
-      border-right:18px solid transparent;
-      border-bottom:34px solid var(--metallic-gold);
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6));
-      z-index:10;
+      border-left:20px solid transparent;
+      border-right:20px solid transparent;
+      border-bottom:36px solid var(--metallic-gold);
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
+      z-index:20;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -251,398 +188,929 @@
       content:"";
       position:absolute;
       top:-18px;
-      left:-8px;
-      width:16px;height:16px;
+      left:-10px;
+      width:20px;height:20px;
       background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.7) 10%, #c79b1a 20%, #815e0e 70%);
       border-radius:50%;
-      box-shadow: 0 0 12px rgba(212,167,44,0.9);
+      box-shadow: 0 0 12px rgba(212,167,44,0.95);
     }
 
-    /* controls and announcement */
     .controls {
-      margin-top: 6px;
       display:flex;
-      gap:16px;
+      gap:12px;
       align-items:center;
-      z-index:6;
+      justify-content:center;
+      margin-top:10px;
+      flex-wrap:wrap;
     }
-    .spin-btn {
+
+    .btn {
       background: linear-gradient(180deg, #fff7d9, #d9b85a);
       color: var(--deep-green);
-      border: 3px solid rgba(0,0,0,0.25);
-      padding: 14px 26px;
+      border: 3px solid rgba(0,0,0,0.15);
+      padding: 12px 18px;
       border-radius: 10px;
       font-weight:700;
       font-style:italic;
-      font-size: clamp(14px, 1.6vw, 20px);
       cursor:pointer;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.55);
-      transition: transform .12s ease, box-shadow .12s ease;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.45);
     }
-    .spin-btn:active{ transform: translateY(2px) scale(.995) }
+    .btn.secondary{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.06));
+      color: var(--off-white);
+      border:1px solid rgba(255,255,255,0.06);
+      box-shadow: none;
+    }
 
     .announcement {
-      min-width:220px;
-      padding:12px 16px;
-      background: linear-gradient(180deg, rgba(247,245,239,0.06), rgba(0,0,0,0.12));
-      border-radius:8px;
-      border:1px solid rgba(255,255,255,0.05);
-      color: var(--cream);
+      margin-top:8px;
       text-align:center;
-      font-style:italic;
+      padding:10px 14px;
+      border-radius:8px;
+      min-height:48px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
       font-weight:700;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+      font-style:italic;
+      color:var(--cream);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.45);
     }
 
-    /* small-screen adjustments */
-    @media (max-width:720px){
-      .podium{ display:none }
-      .wheel-container{ width:86vmin; height:86vmin }
-      .pointer{ border-left:14px solid transparent; border-right:14px solid transparent; border-bottom:28px solid var(--metallic-gold) }
+    /* Right column is entry manager and audio controls */
+    .right {
+      background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.06));
+      padding:18px;
+      border-radius:12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      height:fit-content;
+    }
+    .panel-title {
+      font-size:18px;
+      margin-bottom:8px;
+      font-weight:700;
+      font-style:italic;
+    }
+    label{font-size:13px;display:block;margin-top:8px;color:var(--off-white);opacity:0.95;font-weight:700;font-style:italic}
+    input[type="text"], input[type="url"]{
+      width:100%;
+      padding:8px 10px;
+      margin-top:6px;
+      border-radius:8px;
+      border:1px solid rgba(0,0,0,0.2);
+      background:var(--off-white);
+      color:var(--deep-green);
+      font-family:"Times New Roman", Times, serif;
+      font-weight:700;
+      font-style:italic;
+    }
+    .entry-list{ margin-top:12px; display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto; padding-right:6px }
+    .entry-item{ display:flex; gap:8px; align-items:center; justify-content:space-between; background: rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.02) }
+    .entry-item .meta{flex:1; overflow:hidden}
+    .entry-item .meta b{ display:block; font-weight:700; font-style:italic; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .entry-item .meta small{ display:block; font-size:12px; opacity:0.85; color:var(--off-white) }
+    .entry-item .actions{ display:flex; gap:6px; margin-left:8px; flex-shrink:0 }
+
+    .file-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+
+    .music-controls { display:flex; gap:8px; align-items:center; margin-top:12px; justify-content:space-between }
+
+    /* confetti canvas overlay */
+    #confetti {
+      position: fixed;
+      pointer-events: none;
+      left:0;top:0;right:0;bottom:0;
+      z-index:9999;
     }
 
-    /* animated glow when spinning */
-    .wheel-spin.spinning .bulb {
-      animation: bulbGlow 0.9s linear infinite;
+    @media (max-width:980px){
+      .container{ grid-template-columns: 1fr; padding-bottom:48px; }
+      .right{ order:2; margin-top:16px }
+      .left{ order:1 }
+      .wheel-container{ max-width:86vmin }
+      .pointer{ border-left:16px solid transparent; border-right:16px solid transparent; border-bottom:30px solid var(--metallic-gold) }
     }
-    @keyframes bulbGlow {
-      0% { filter: drop-shadow(0 0 6px rgba(212,167,44,0.8)); transform: scale(1); }
-      50% { filter: drop-shadow(0 0 12px rgba(212,167,44,1)); transform: scale(1.08); }
-      100% { filter: drop-shadow(0 0 6px rgba(212,167,44,0.8)); transform: scale(1); }
-    }
-
-    /* subtle wheel shadow */
-    .wheel-shadow {
-      position:absolute;
-      width:85%;
-      height:85%;
-      border-radius:50%;
-      filter: blur(26px);
-      background: radial-gradient(closest-side, rgba(0,0,0,0.55), transparent 50%);
-      bottom:-4%;
-      z-index:2;
-      transform: translateY(36px);
-    }
-
   </style>
 </head>
 <body>
-  <div class="stage" role="main">
-    <div class="curtain" aria-hidden="true"></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
 
+  <div class="container" role="main">
     <header>
       <h1>OASIS RECOVERY</h1>
-      <p class="lead">Spin the Wheel — A Journey of Possibilities</p>
+      <p class="subtitle">Spin the Wheel — A Journey of Possibilities</p>
     </header>
 
-    <div class="wheel-wrap" aria-hidden="false">
-      <div class="wheel-container" role="application" aria-label="Spinning prize wheel">
-        <div class="wheel-rim" aria-hidden="true"></div>
+    <section class="left" aria-labelledby="wheel-heading">
+      <div class="wheel-area">
+        <div class="wheel-container" aria-hidden="false">
+          <div class="wheel-outer" aria-hidden="true"></div>
 
-        <div class="wheel-spin" id="wheel">
-          <div class="bead-ring" id="beads" aria-hidden="true"></div>
-          <div class="wheel-face" id="face" aria-hidden="true"></div>
-          <!-- labels will be injected here -->
-          <div class="hub" aria-hidden="true">OASIS</div>
+          <div class="wheel-spin" id="wheel" aria-live="off" aria-atomic="true">
+            <div class="wheel-face" id="wheelFace" aria-hidden="true"></div>
+            <!-- labels are injected dynamically -->
+            <div class="hub">OASIS</div>
+          </div>
+
+          <div class="pointer" aria-hidden="true"></div>
         </div>
 
-        <div class="pointer" aria-hidden="true"></div>
-        <div class="wheel-shadow" aria-hidden="true"></div>
+        <div class="controls" role="group" aria-label="Wheel controls">
+          <button id="spinBtn" class="btn" title="Spin the wheel now">SPIN NOW</button>
+          <button id="spinAgainBtn" class="btn secondary" title="Spin again without resetting">SPIN AGAIN</button>
+          <button id="resetBtn" class="btn secondary" title="Reset wheel and clear winner">RESET</button>
+        </div>
+
+        <div class="announcement" id="announcement" role="status" aria-live="polite">
+          Ready to spin
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="controls" aria-live="polite">
-      <button class="spin-btn" id="spinBtn" aria-controls="wheel">SPIN</button>
-      <div class="announcement" id="announce">Ready to spin</div>
-    </div>
+    <aside class="right" aria-labelledby="manage-heading">
+      <div>
+        <div class="panel-title" id="manage-heading">Manage Wheel Entries</div>
 
-    <div class="podium" aria-hidden="true"></div>
+        <label for="entryName">Entry Name</label>
+        <input id="entryName" type="text" placeholder="Person or Prize name" />
+
+        <label for="entryUrl">Website URL (optional)</label>
+        <input id="entryUrl" type="url" placeholder="https://example.org" />
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button id="addBtn" class="btn">ADD ENTRY</button>
+          <button id="saveBtn" class="btn secondary">SAVE (to localStorage)</button>
+        </div>
+
+        <div class="entry-list" id="entryList" aria-live="polite" aria-atomic="true"></div>
+
+        <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0">
+
+        <div class="panel-title">Audio & Music</div>
+
+        <div class="file-row">
+          <label for="uploadMusic" style="margin:0">Upload MP3 (optional)</label>
+          <input id="uploadMusic" type="file" accept="audio/*" />
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+          <button id="musicToggle" class="btn secondary">MUSIC: OFF</button>
+          <div style="flex:1">
+            <label for="volume" style="margin:0;font-size:12px">Volume</label>
+            <input id="volume" type="range" min="0" max="1" step="0.01" value="0.28" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px; font-size:13px; opacity:0.92">
+          Music will start after you enable it (user interaction required by browsers).
+        </div>
+
+      </div>
+    </aside>
   </div>
 
   <script>
-    (function(){
-      // Configuration
-      const segments = [
-        "Counselling",
-        "Detox Programme",
-        "Group Therapy",
-        "Aftercare",
-        "Family Support",
-        "One-on-One",
-        "Mindfulness",
-        "Relapse Prevention",
-        "Wellness Plan",
-        "Community Events",
-        "Peer Mentorship",
-        "Personal Growth"
-      ];
-      const SEG_COUNT = segments.length;
-      const wheel = document.getElementById('wheel');
-      const face = document.getElementById('face');
-      const beadsContainer = document.getElementById('beads');
-      const spinBtn = document.getElementById('spinBtn');
-      const announce = document.getElementById('announce');
+  (function(){
+    // Constants & DOM refs
+    const wheel = document.getElementById('wheel');
+    const wheelFace = document.getElementById('wheelFace');
+    const spinBtn = document.getElementById('spinBtn');
+    const spinAgainBtn = document.getElementById('spinAgainBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const announcement = document.getElementById('announcement');
 
-      // Prepare segments visuals using conic-gradient with alternating colors
-      function setFaceGradient(){
-        // Build gradient stops programmatically
-        const green = getComputedStyle(document.documentElement).getPropertyValue('--deep-green').trim();
-        const gold = getComputedStyle(document.documentElement).getPropertyValue('--metallic-gold').trim();
-        const slice = 360 / SEG_COUNT;
-        let stops = [];
-        for(let i=0;i<SEG_COUNT;i++){
-          const start = i*slice;
-          const mid = start + slice;
-          stops.push(`${(i%2===0)?green:gold} ${start}deg ${(start+0.0001)}deg`);
-          stops.push(`${(i%2===0)?gold:green} ${(start+0.0001)}deg ${mid}deg`);
+    const entryNameInput = document.getElementById('entryName');
+    const entryUrlInput = document.getElementById('entryUrl');
+    const addBtn = document.getElementById('addBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const entryList = document.getElementById('entryList');
+
+    const uploadMusic = document.getElementById('uploadMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    const volumeSlider = document.getElementById('volume');
+
+    const confettiCanvas = document.getElementById('confetti');
+    const confettiCtx = confettiCanvas.getContext('2d');
+
+    // Localstorage key
+    const STORAGE_KEY = 'oasis-wheel-entries-v1';
+
+    // Default sample entries (six)
+    const DEFAULT_ENTRIES = [
+      {name:"Counselling", url:"https://example.org/counselling"},
+      {name:"Detox Programme", url:"https://example.org/detox"},
+      {name:"Group Therapy", url:"https://example.org/group"},
+      {name:"Aftercare", url:"https://example.org/aftercare"},
+      {name:"Family Support", url:"https://example.org/family"},
+      {name:"Mindfulness", url:"https://example.org/mindfulness"}
+    ];
+
+    // Colors to alternate: deep green, metallic gold, cream, off-white
+    const PALETTE = ['#063D22','#D4A72C','#F3E4C5','#F7F5EF'];
+
+    // Application state
+    let entries = []; // array of {name, url}
+    let selectedIndex = null;
+    let winner = null;
+
+    // Wheel physics state
+    let angular = 0; // degrees
+    let velocity = 0; // deg/sec
+    let spinning = false;
+    let lastTime = null;
+    let rafId = null;
+    let lastSegmentUnderPointer = null;
+
+    // Audio context and sources
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let masterGain = null;
+    let musicGain = null;
+    let musicSource = null;
+    let uploadedMusicBuffer = null;
+    let musicOn = false;
+
+    // Short buffers for tick & applause
+    let tickBuffer = null;
+    let applauseBuffer = null; // optional uploaded applause from file
+    let jinglePlaying = false;
+
+    // Confetti state
+    let confettiParticles = [];
+    let confettiRunning = false;
+
+    // Utility functions
+    function saveEntriesToStorage(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+    function loadEntriesFromStorage(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          entries = JSON.parse(raw);
+          if(!Array.isArray(entries) || entries.length === 0){
+            entries = DEFAULT_ENTRIES.slice();
+            saveEntriesToStorage();
+          }
+        } else {
+          entries = DEFAULT_ENTRIES.slice();
+          saveEntriesToStorage();
         }
-        face.style.background = `conic-gradient(${stops.join(',')})`;
+      }catch(e){
+        entries = DEFAULT_ENTRIES.slice();
       }
+    }
 
-      // Create labels and position them around the wheel
-      function createLabels(){
-        // Remove any existing labels
-        const old = wheel.querySelectorAll('.label');
-        old.forEach(e=>e.remove());
+    // Build wheel visual using conic-gradient and create labels
+    function renderWheel(){
+      const n = entries.length || 1;
+      const slice = 360 / n;
+      // build gradient stops using palette cycling
+      const stops = [];
+      for(let i=0;i<n;i++){
+        const color = PALETTE[i % PALETTE.length];
+        const start = i*slice;
+        const end = (i+1)*slice;
+        stops.push(`${color} ${start}deg ${end}deg`);
+      }
+      wheelFace.style.background = `conic-gradient(${stops.join(',')})`;
+      // remove existing labels
+      const oldLabels = wheel.querySelectorAll('.segment-label');
+      oldLabels.forEach(l=>l.remove());
+      // create labels positioned around center, inside wheel-spin so they rotate with wheel
+      const rect = wheel.getBoundingClientRect();
+      const radius = Math.min(rect.width, rect.height) * 0.36;
+      for(let i=0;i<n;i++){
+        const angle = i*slice;
+        const label = document.createElement('div');
+        label.className = 'segment-label';
+        label.textContent = entries[i] ? entries[i].name : `Entry ${i+1}`;
+        // Position label at radial position and rotate so it follows the wheel (we intentionally keep text rotated with wheel)
+        // We'll offset so the label sits roughly centered along segment radius.
+        const theta = (angle + slice/2) * Math.PI/180; // middle of segment
+        const x = 50 + Math.sin(theta) * (radius/ (rect.width/2) * 100);
+        const y = 50 - Math.cos(theta) * (radius/ (rect.height/2) * 100);
+        label.style.left = x + '%';
+        label.style.top = y + '%';
+        // Rotate label to point outward along segment (labels rotate together with wheel)
+        label.style.transform = `translate(-50%,-50%) rotate(${angle + slice/2}deg)`;
+        label.style.fontWeight = '700';
+        label.style.fontStyle = 'italic';
+        label.style.fontFamily = '"Times New Roman", Times, serif';
+        wheel.appendChild(label);
+      }
+    }
 
-        const radius = wheel.clientWidth * 0.38; // radial position for labels
-        for(let i=0;i<SEG_COUNT;i++){
-          const angle = (360 / SEG_COUNT) * i;
-          const label = document.createElement('div');
-          label.className = 'label';
-          label.textContent = segments[i];
-          // rotate each label so it reads outward
-          label.style.transform = `rotate(${angle}deg) translate(-50%, 0)`;
-          // position by using transform-origin / top-left placement trick
-          // We'll set top/left using polar coords relative to center
-          const theta = (angle + (360 / SEG_COUNT) / 2) * Math.PI / 180;
-          const cx = wheel.clientWidth / 2;
-          const cy = wheel.clientHeight / 2;
-          // compute relative percentage offsets
-          const r = 0.38 * wheel.clientWidth;
-          const x = cx + Math.sin(theta) * r;
-          const y = cy - Math.cos(theta) * r;
-          label.style.left = (x / wheel.clientWidth * 100) + '%';
-          label.style.top = (y / wheel.clientHeight * 100) + '%';
-          // rotate label to follow wheel segment orientation (counter rotate text slightly)
-          label.style.transform = `translate(-50%,-50%) rotate(${angle + 90}deg)`;
-          label.setAttribute('aria-hidden','true');
-          wheel.appendChild(label);
+    // Re-render list UI
+    function renderEntryList(){
+      entryList.innerHTML = '';
+      entries.forEach((e, idx) => {
+        const it = document.createElement('div');
+        it.className = 'entry-item';
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const b = document.createElement('b');
+        b.textContent = e.name || `Entry ${idx+1}`;
+        const s = document.createElement('small');
+        s.textContent = e.url || '';
+        meta.appendChild(b);
+        meta.appendChild(s);
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const edit = document.createElement('button');
+        edit.className = 'btn secondary';
+        edit.textContent = 'EDIT';
+        edit.title = 'Edit this entry';
+        edit.addEventListener('click', ()=> {
+          entryNameInput.value = e.name;
+          entryUrlInput.value = e.url || '';
+          addBtn.textContent = 'UPDATE ENTRY';
+          addBtn.dataset.editIndex = idx;
+          window.scrollTo({top:0, behavior:'smooth'});
+        });
+        const del = document.createElement('button');
+        del.className = 'btn secondary';
+        del.textContent = 'DELETE';
+        del.title = 'Delete this entry';
+        del.addEventListener('click', ()=>{
+          if(!confirm('Delete entry "' + e.name + '"?')) return;
+          entries.splice(idx,1);
+          saveEntriesToStorage();
+          renderEntryList();
+          renderWheel();
+        });
+        actions.appendChild(edit);
+        actions.appendChild(del);
+        it.appendChild(meta);
+        it.appendChild(actions);
+        entryList.appendChild(it);
+      });
+    }
+
+    // Event handlers for add/save
+    addBtn.addEventListener('click', ()=>{
+      const name = entryNameInput.value.trim();
+      const url = entryUrlInput.value.trim();
+      if(!name){
+        alert('Entry name required.');
+        return;
+      }
+      const editIndex = addBtn.dataset.editIndex;
+      if(editIndex !== undefined && editIndex !== null){
+        const idx = parseInt(editIndex,10);
+        if(!isNaN(idx) && idx >= 0 && idx < entries.length){
+          entries[idx].name = name;
+          entries[idx].url = url || '';
+          addBtn.textContent = 'ADD ENTRY';
+          delete addBtn.dataset.editIndex;
         }
+      } else {
+        entries.push({name, url: url || ''});
       }
+      entryNameInput.value = '';
+      entryUrlInput.value = '';
+      saveEntriesToStorage();
+      renderEntryList();
+      renderWheel();
+    });
 
-      // Create beads (lights) evenly around the rim
-      function createBeads(){
-        beadsContainer.innerHTML = '';
-        const beadCount = SEG_COUNT * 2;
-        const size = Math.max(Math.min(window.innerWidth * 0.01, 14), 8);
-        for(let i=0;i<beadCount;i++){
-          const b = document.createElement('div');
-          b.className = 'bulb';
-          b.style.setProperty('--size', size + 'px');
-          const angle = (360 / beadCount) * i;
-          b.style.position = 'absolute';
-          b.style.left = '50%';
-          b.style.top = '50%';
-          b.style.transform = `rotate(${angle}deg) translateY(-42%) translateX(-50%)`;
-          b.style.opacity = (i%2===0) ? 1 : 0.88;
-          beadsContainer.appendChild(b);
-        }
-      }
+    saveBtn.addEventListener('click', ()=>{
+      saveEntriesToStorage();
+      alert('Entries saved to localStorage.');
+    });
 
-      // Resize handler to reposition labels/beads
-      function layout(){
-        setFaceGradient();
-        createLabels();
-        createBeads();
+    // Wheel geometry helpers
+    function sliceAngle(){ return 360 / Math.max(entries.length, 1); }
+
+    function normalizeAngle(a){
+      return ((a % 360) + 360) % 360;
+    }
+
+    // Determine which segment index is at pointer (pointer at 0deg top)
+    function segmentAtPointer(angle){
+      // wheel rotated by "angle" degrees clockwise (positive). A label with index i is centered
+      // at rotation angle = - (i*slice + slice/2) so compute mapping.
+      const a = normalizeAngle(angle);
+      const slice = sliceAngle();
+      // The segment whose central angle aligns with top (0deg) when wheel angle = target
+      // Compute "pointerAlignedIndex" as:
+      // pointer sees segment index = Math.floor( ( (360 - a + slice/2) % 360 ) / slice )
+      const adj = normalizeAngle(360 - a + slice/2);
+      let idx = Math.floor(adj / slice);
+      idx = idx % entries.length;
+      return idx;
+    }
+
+    // AUDIO: initialize audio context when first needed
+    function ensureAudioContext(){
+      if(!audioCtx){
+        audioCtx = new AudioCtx();
+        masterGain = audioCtx.createGain(); masterGain.gain.value = 0.9;
+        musicGain = audioCtx.createGain(); musicGain.gain.value = parseFloat(volumeSlider.value);
+        masterGain.connect(audioCtx.destination);
+        musicGain.connect(masterGain);
+        // create tick buffer
+        tickBuffer = createTickBuffer();
       }
-      window.addEventListener('resize', () => {
-        layout();
+    }
+
+    // Create a short tick "tak" buffer (click-like)
+    function createTickBuffer(){
+      const ctx = audioCtx || (new (window.AudioContext || window.webkitAudioContext)());
+      const len = Math.floor(ctx.sampleRate * 0.03); // 30ms
+      const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      // generate short click: decaying high-frequency sine + noise burst
+      for(let i=0;i<len;i++){
+        const t = i/ctx.sampleRate;
+        // decaying sine
+        data[i] = (Math.random()*2-1) * 0.02 + Math.sin(2*Math.PI*4000*t) * Math.exp(-40*t) * 0.5;
+      }
+      return buffer;
+    }
+
+    // Play tick sound
+    function playTick(){
+      if(!audioCtx) return;
+      const src = audioCtx.createBufferSource();
+      src.buffer = tickBuffer;
+      const g = audioCtx.createGain();
+      g.gain.value = 0.9;
+      src.connect(g); g.connect(masterGain);
+      src.start();
+    }
+
+    // Create victory jingle (generated) - short
+    function playVictoryJingle(){
+      if(!audioCtx) return;
+      if(jinglePlaying) return;
+      jinglePlaying = true;
+      const now = audioCtx.currentTime;
+      const master = masterGain;
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc1.type = 'sine'; osc2.type = 'triangle';
+      osc1.frequency.value = 660;
+      osc2.frequency.value = 990;
+      g.gain.value = 0;
+      osc1.connect(g); osc2.connect(g); g.connect(master);
+
+      osc1.start();
+      osc2.start();
+
+      // sequence of notes using setTimeout with scheduling
+      const notes = [660, 880, 990, 1320];
+      let t = 0;
+      notes.forEach((freq, i) => {
+        setTimeout(()=>{
+          osc1.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.01);
+          osc2.frequency.setTargetAtTime(freq*1.5, audioCtx.currentTime, 0.01);
+          g.gain.cancelScheduledValues(audioCtx.currentTime);
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+        }, t);
+        t += 400;
       });
 
-      // Convert degrees to normalized 0-360
-      function norm(deg){
-        return ((deg % 360)+360)%360;
-      }
+      // stop after sequence
+      setTimeout(()=>{
+        osc1.stop();
+        osc2.stop();
+        jinglePlaying = false;
+      }, t + 300);
+    }
 
-      // Physics-based spinner using angular velocity & friction for realistic deceleration
-      let spinning = false;
-      let angular = 0; // current angle (degrees)
-      let velocity = 0; // degrees per second
-      let lastTs = null;
-      const friction = 0.995; // multiplicative friction per frame (tuned)
-      const minVelocity = 0.08; // threshold to stop
-
-      // get segment index at pointer (pointer at 0deg top). wheel rotation is clockwise for positive angles.
-      function getSelectedSegment(angle){
-        // angle is rotation of wheel in degrees, where 0 means initial orientation.
-        // Pointer at top (0deg) corresponds to angle 0. We want label under pointer, so:
-        const pointerAngle = norm(angle); // wheel angle mod 360
-        // Each slice spans slice deg; compute which slice aligns with pointer.
-        const slice = 360 / SEG_COUNT;
-        // Because labels were placed starting from 0deg, we can compute index:
-        // pointerAngle of 0 => segment index 0 (top). But orientation of label rotation may shift by half-slice.
-        // We will offset by half-slice so pointer catches the correct segment center.
-        const adj = norm(pointerAngle + slice/2);
-        let idx = Math.floor(adj / slice);
-        // Map to segments array index
-        idx = (SEG_COUNT - idx) % SEG_COUNT;
-        return idx;
-      }
-
-      // animate loop
-      function step(ts){
-        if(!lastTs) lastTs = ts;
-        const dt = (ts - lastTs) / 1000; // seconds
-        lastTs = ts;
-        if(spinning){
-          // integrate physics
-          // Apply friction scaled by dt
-          // Convert multiplicative friction into per-second dependent for consistency (approx):
-          velocity *= Math.pow(friction, dt*60); // tuned
-          // Apply slight constant torque while spinning for unpredictability
-          // Not adding torque; just decelerate
-          angular += velocity * dt;
-          // Render
-          wheel.style.transform = `rotate(${angular}deg)`;
-          // stop condition
-          if(Math.abs(velocity) < minVelocity){
-            spinning = false;
-            velocity = 0;
-            // Snap to exact segment center for crisp result
-            const selected = getSelectedSegment(angular);
-            // compute target angle where selected segment is exactly under pointer:
-            const slice = 360/SEG_COUNT;
-            const targetAngle = norm((360 - (selected * slice + slice/2)));
-            // animate small snap
-            const diff = norm(targetAngle - norm(angular));
-            const snap = diff > 180 ? diff - 360 : diff;
-            // apply small transition
-            const finalAngle = angular + snap;
-            wheel.style.transition = 'transform 900ms cubic-bezier(.2,.9,.25,1)';
-            requestAnimationFrame(()=>{
-              wheel.style.transform = `rotate(${finalAngle}deg)`;
-            });
-            setTimeout(()=>{
-              wheel.style.transition = '';
-              angular = finalAngle;
-              const winner = segments[selected];
-              announce.textContent = `Winner: ${winner}`;
-              announce.style.background = 'linear-gradient(180deg, rgba(212,167,44,0.06), rgba(0,0,0,0.12))';
-              spinBtn.disabled = false;
-              spinBtn.style.cursor = 'pointer';
-              wheel.classList.remove('spinning');
-            }, 950);
-            return;
+    // Play applause or generated crowd noise (simple)
+    function playApplauseOrJingle(){
+      if(!audioCtx) return;
+      if(applauseBuffer){
+        const src = audioCtx.createBufferSource();
+        src.buffer = applauseBuffer;
+        const g = audioCtx.createGain(); g.gain.value = 0.9;
+        src.connect(g); g.connect(masterGain);
+        src.start();
+      } else {
+        // generate short synthesized clap-like sound using noise bursts
+        const now = audioCtx.currentTime;
+        for(let i=0;i<6;i++){
+          const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.12, audioCtx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for(let j=0;j<data.length;j++){
+            // decaying noise
+            data[j] = (Math.random()*2-1) * Math.exp(-6 * j / data.length);
           }
+          const src = audioCtx.createBufferSource();
+          src.buffer = buffer;
+          const g = audioCtx.createGain();
+          g.gain.value = 0.15 * (1 - i/8);
+          src.connect(g); g.connect(masterGain);
+          src.start(now + i * 0.05);
         }
-        requestAnimationFrame(step);
+        // short jingle too
+        setTimeout(()=>playVictoryJingle(), 150);
       }
+    }
 
-      // Start a spin. Randomize initial velocity and direction.
-      function startSpin(){
-        if(spinning) return;
-        spinning = true;
-        spinBtn.disabled = true;
-        spinBtn.style.cursor = 'wait';
-        announce.textContent = 'Spinning...';
-        announce.style.background = 'linear-gradient(180deg, rgba(247,245,239,0.02), rgba(0,0,0,0.06))';
-        // Random velocity: choose a number of full rotations between 6 and 12 then turn into deg/sec initial effectively
-        const rotations = Math.random()*6 + 6; // 6 to 12 rotations
-        const spinDuration = Math.random()*1700 + 2400; // ms, not directly used; used to shape velocity
-        // Convert to degrees and set initial velocity such that it will slowly decay
-        // We set velocity such that in absence of friction, it would finish in spinDuration.
-        const totalDegrees = rotations * 360;
-        const initialSpeed = totalDegrees / (spinDuration / 1000); // deg/s
-        // Randomize direction
-        const dir = Math.random() > 0.5 ? 1 : -1;
-        velocity = initialSpeed * dir;
-        // Kick off animation loop (if not already)
-        lastTs = null;
-        wheel.classList.add('spinning');
-        // Also add a lively CSS transform (a subtle wobble while spinning)
-        // Start the RAF loop
-        requestAnimationFrame(step);
+    // Music: simple ambient pad using oscillators (fallback if no uploaded file)
+    let padOsc1, padOsc2, padGain;
+    function startGeneratedMusic(){
+      if(!audioCtx) return;
+      if(musicSource) return; // a source is playing (uploaded)
+      // ambient pad
+      padGain = audioCtx.createGain(); padGain.gain.value = 0;
+      padGain.connect(musicGain);
+      padOsc1 = audioCtx.createOscillator();
+      padOsc2 = audioCtx.createOscillator();
+      padOsc1.type = 'sine'; padOsc2.type = 'sine';
+      padOsc1.frequency.value = 220; padOsc2.frequency.value = 330;
+      const padDetune = audioCtx.createGain(); padDetune.gain.value = 0;
+      padOsc1.connect(padGain);
+      padOsc2.connect(padGain);
+      padOsc1.start();
+      padOsc2.start();
+      // smooth fade in
+      padGain.gain.linearRampToValueAtTime(parseFloat(volumeSlider.value) * 0.6, audioCtx.currentTime + 1.2);
+    }
+    function stopGeneratedMusic(){
+      if(padGain){
+        padGain.gain.cancelScheduledValues(audioCtx.currentTime);
+        padGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+        setTimeout(()=>{
+          try{ padOsc1.stop(); padOsc2.stop(); }catch(e){}
+          padOsc1 = padOsc2 = padGain = null;
+        }, 1000);
       }
+    }
 
-      // click handler
-      spinBtn.addEventListener('click', startSpin);
+    // Load uploaded music into buffer
+    uploadMusic.addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      ensureAudioContext();
+      const data = await file.arrayBuffer();
+      try{
+        uploadedMusicBuffer = await audioCtx.decodeAudioData(data.slice(0));
+        alert('Music uploaded and ready. Toggle MUSIC ON to play it.');
+      }catch(err){
+        console.error('Failed to decode music', err);
+        alert('Could not decode the uploaded file.');
+      }
+    });
 
-      // Initialize layout
-      layout();
+    // Music toggle
+    musicToggle.addEventListener('click', async ()=>{
+      ensureAudioContext();
+      if(!musicOn){
+        // start audio context on user interaction
+        if(audioCtx.state === 'suspended') await audioCtx.resume();
+        if(uploadedMusicBuffer){
+          musicSource = audioCtx.createBufferSource();
+          musicSource.buffer = uploadedMusicBuffer;
+          musicSource.loop = true;
+          musicSource.connect(musicGain);
+          musicSource.start();
+        } else {
+          startGeneratedMusic();
+        }
+        musicOn = true;
+        musicToggle.textContent = 'MUSIC: ON';
+      } else {
+        // stop
+        musicOn = false;
+        musicToggle.textContent = 'MUSIC: OFF';
+        if(musicSource){
+          try{ musicSource.stop(); }catch(e){}
+          musicSource.disconnect();
+          musicSource = null;
+        }
+        stopGeneratedMusic();
+      }
+    });
 
-      // initial render state
-      wheel.style.transform = 'rotate(0deg)';
+    volumeSlider.addEventListener('input', ()=>{
+      if(!audioCtx) return;
+      if(musicGain) musicGain.gain.value = parseFloat(volumeSlider.value);
+    });
+
+    // Tick when wheel passes segment boundary
+    function checkTick(){
+      const idx = segmentAtPointer(angular);
+      if(lastSegmentUnderPointer === null) lastSegmentUnderPointer = idx;
+      if(idx !== lastSegmentUnderPointer){
+        // play mechanical tick
+        ensureAudioContext();
+        if(audioCtx) playTick();
+        lastSegmentUnderPointer = idx;
+      }
+    }
+
+    // Spin physics loop
+    function step(ts){
+      if(!lastTime) lastTime = ts;
+      const dt = (ts - lastTime) / 1000;
+      lastTime = ts;
+      if(spinning){
+        // integrate: apply velocity to angular
+        angular += velocity * dt;
+        // friction
+        const friction = Math.pow(0.9985, dt * 60);
+        velocity *= friction;
+        // damp tiny velocities
+        if(Math.abs(velocity) < 4) velocity *= 0.995;
+        // render
+        wheel.style.transform = `rotate(${angular}deg)`;
+        // tick logic
+        checkTick();
+        // stop condition
+        if(Math.abs(velocity) < 0.12){
+          spinning = false;
+          velocity = 0;
+          finalizeSpin();
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    }
+
+    function finalizeSpin(){
+      // Snap to center of segment
+      const idx = segmentAtPointer(angular);
+      selectedIndex = idx;
+      const slice = sliceAngle();
+      const target = normalizeAngle(360 - (idx * slice + slice/2));
+      // compute small difference and animate wheel to final
+      const diff = normalizeAngle(target - normalizeAngle(angular));
+      let snap = diff;
+      if(snap > 180) snap -= 360;
+      angular = angular + snap;
+      wheel.style.transition = 'transform 800ms cubic-bezier(.2,.9,.25,1)';
+      wheel.style.transform = `rotate(${angular}deg)`;
+      setTimeout(()=>{
+        wheel.style.transition = '';
+        announceWinner(idx);
+        lastSegmentUnderPointer = null;
+      }, 820);
+    }
+
+    function announceWinner(idx){
+      winner = entries[idx];
+      const name = winner && winner.name ? winner.name : `Entry ${idx+1}`;
+      announcement.innerHTML = `<div style="font-size:18px;font-weight:700;font-style:italic">CONGRATULATIONS!</div><div style="margin-top:6px">${name}</div>`;
+      // celebration
+      startConfetti();
+      ensureAudioContext();
+      // play applause or jingle
+      playApplauseOrJingle();
+      // show open link button inside announcement
+      if(winner && winner.url){
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn';
+        openBtn.style.marginTop = '8px';
+        openBtn.textContent = 'OPEN SELECTED LINK';
+        openBtn.addEventListener('click', ()=> {
+          window.open(winner.url, '_blank');
+        });
+        announcement.appendChild(openBtn);
+      }
+    }
+
+    // Public control handlers
+    function startSpin(initialVelocity){
+      if(entries.length < 1) return;
+      if(spinning) return;
+      ensureAudioContext();
+      // random spin: choose rotations and duration
+      const rotations = (Math.random() * 6) + 6; // 6-12 rotations
+      const spinTime = (Math.random() * 1.5) + 2.5; // seconds typical
+      // initial angular velocity deg/sec
+      velocity = (rotations * 360) / spinTime;
+      // random direction
+      if(Math.random() > 0.5) velocity *= -1;
+      // override if provided
+      if(typeof initialVelocity === 'number') velocity = initialVelocity;
+      spinning = true;
+      lastTime = null;
+      // update UI
+      announcement.textContent = 'Spinning...';
+      spinBtn.disabled = true;
+      spinAgainBtn.disabled = true;
+      resetBtn.disabled = true;
+      // ensure music unlocked on interaction
+      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    spinBtn.addEventListener('click', ()=>{
+      startSpin();
+      // start raf loop if not running
+      if(!rafId) rafId = requestAnimationFrame(step);
+    });
+
+    spinAgainBtn.addEventListener('click', ()=>{
+      // allow spin again: start from current angular and spin anew
+      if(spinning) return;
+      // small random push
+      const extra = (Math.random() * 400 + 800) * (Math.random()>0.5 ? 1 : -1);
+      startSpin(extra);
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      spinning = false;
+      velocity = 0;
+      winner = null;
+      selectedIndex = null;
+      announcement.textContent = 'Ready to spin';
+      wheel.style.transition = 'transform 700ms cubic-bezier(.2,.9,.25,1)';
       angular = 0;
+      wheel.style.transform = `rotate(0deg)`;
+      setTimeout(()=> wheel.style.transition = '', 760);
+      stopConfetti();
+      spinBtn.disabled = false;
+      spinAgainBtn.disabled = false;
+      resetBtn.disabled = false;
+    });
 
-      // Accessibility: allow space/enter on button and keyboard spin
-      spinBtn.addEventListener('keydown', (e)=>{
-        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startSpin(); }
+    // TICK when user drags/flings wheel using mouse/touch
+    (function addFlingAndDrag(){
+      let down = false, startY=0, startX=0, startTime=0;
+      let startAngleAtDown = 0;
+
+      wheel.addEventListener('pointerdown', (e)=>{
+        if(spinning) return;
+        down = true;
+        startX = e.clientX; startY = e.clientY; startTime = Date.now();
+        startAngleAtDown = angular;
+        wheel.setPointerCapture(e.pointerId);
       });
-
-      // On load: animate in the wheel gently
-      window.addEventListener('load', ()=>{
-        wheel.style.transform = 'rotate(-6deg) scale(.98)';
-        setTimeout(()=> {
-          wheel.style.transition = 'transform 700ms cubic-bezier(.2,.9,.25,1)';
-          wheel.style.transform = 'rotate(0deg) scale(1)';
-          setTimeout(()=> wheel.style.transition = '', 900);
-        }, 140);
+      window.addEventListener('pointermove', (e)=>{
+        if(!down) return;
+        // rotate wheel based on horizontal movement
+        const dx = e.clientX - startX;
+        angular = startAngleAtDown + dx * 0.4;
+        wheel.style.transform = `rotate(${angular}deg)`;
+        // ticks:
+        checkTick();
       });
-
-      // Touch gestures: fling to spin (optional)
-      (function addFling(){
-        let startY = null, startTime = null;
-        let startAngleOnDown = null;
-
-        function down(e){
-          if(spinning) return;
-          const touch = e.touches ? e.touches[0] : e;
-          startY = touch.clientY;
-          startTime = Date.now();
-          startAngleOnDown = angular;
+      window.addEventListener('pointerup', (e)=>{
+        if(!down) return;
+        down = false;
+        const dt = (Date.now() - startTime) / 1000;
+        const dx = e.clientX - startX;
+        // fling velocity
+        const flingV = dx / Math.max(dt, 0.01) * 2.2; // tuned
+        if(Math.abs(flingV) > 150){
+          velocity = flingV;
+          spinning = true;
+          lastTime = null;
+          if(!rafId) rafId = requestAnimationFrame(step);
         }
-        function up(e){
-          if(startY === null) return;
-          const touch = (e.changedTouches && e.changedTouches[0]) || e;
-          const dy = startY - touch.clientY;
-          const dt = Date.now() - startTime;
-          // fling if enough velocity
-          const velocityY = dy / Math.max(dt, 8);
-          if(Math.abs(velocityY) > 0.6){
-            // map vertical fling to angular velocity
-            const speed = velocityY * 5000; // tuned factor
-            velocity = speed;
-            spinning = true;
-            lastTs = null;
-            wheel.classList.add('spinning');
-            requestAnimationFrame(step);
-            spinBtn.disabled = true;
-            spinBtn.style.cursor = 'wait';
-            announce.textContent = 'Spinning...';
-          }
-          startY = null;
-        }
-        wheel.addEventListener('touchstart', down, {passive:true});
-        wheel.addEventListener('touchend', up, {passive:true});
-        wheel.addEventListener('mousedown', function(e){
-          // allow drag-to-spin on desktop by measuring mouse fling
-          down(e);
-          const upListener = function(ev){
-            up(ev);
-            window.removeEventListener('mouseup', upListener);
-          };
-          window.addEventListener('mouseup', upListener);
-        }, {passive:true});
-      })();
-
-      // initial announcement content
-      announce.textContent = 'Ready to spin';
-
-      // Friendly cleanup if user navigates away
-      window.addEventListener('beforeunload', ()=>{ spinning = false; });
-
+      });
     })();
+
+    // CONFETTI routines (canvas)
+    function resizeConfetti(){
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfetti);
+    resizeConfetti();
+
+    function startConfetti(){
+      confettiRunning = true;
+      confettiParticles = [];
+      for(let i=0;i<120;i++){
+        confettiParticles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * -confettiCanvas.height * Math.random(),
+          vx: (Math.random() - 0.5) * 6,
+          vy: Math.random() * 6 + 2,
+          size: Math.random() * 8 + 6,
+          color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+          rot: Math.random() * 360,
+          vr: (Math.random() - 0.5) * 10
+        });
+      }
+      requestAnimationFrame(confettiLoop);
+      // also trigger small golden fireworks
+      setTimeout(()=>fireworksBurst(), 200);
+      // auto stop after some time
+      setTimeout(()=>stopConfetti(), 9000);
+    }
+
+    function stopConfetti(){
+      confettiRunning = false;
+    }
+
+    function confettiLoop(){
+      confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      if(!confettiRunning && confettiParticles.length===0) return;
+      for(let i=confettiParticles.length-1;i>=0;i--){
+        const p = confettiParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15;
+        p.rot += p.vr;
+        confettiCtx.save();
+        confettiCtx.translate(p.x,p.y);
+        confettiCtx.rotate(p.rot * Math.PI/180);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+        confettiCtx.restore();
+        if(p.y > confettiCanvas.height + 60){
+          confettiParticles.splice(i,1);
+        }
+      }
+      if(confettiRunning){
+        // spawn a few more
+        if(Math.random() < 0.25){
+          confettiParticles.push({
+            x: Math.random() * confettiCanvas.width,
+            y: -10,
+            vx: (Math.random() - 0.5) * 6,
+            vy: Math.random() * 4 + 2,
+            size: Math.random() * 8 + 6,
+            color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+            rot: Math.random() * 360,
+            vr: (Math.random() - 0.5) * 10
+          });
+        }
+      }
+      if(confettiParticles.length > 0) requestAnimationFrame(confettiLoop);
+    }
+
+    function fireworksBurst(){
+      // simple radial particle burst near top of wheel
+      const cx = window.innerWidth/2;
+      const cy = document.querySelector('.wheel-container').getBoundingClientRect().top + 120;
+      const count = 40;
+      for(let i=0;i<count;i++){
+        confettiParticles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(i/count * Math.PI*2) * (Math.random()*8 + 2),
+          vy: Math.sin(i/count * Math.PI*2) * (Math.random()*8 + 2),
+          size: Math.random() * 6 + 3,
+          color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+          rot: Math.random() * 360,
+          vr: (Math.random() - 0.5) * 10
+        });
+      }
+      requestAnimationFrame(confettiLoop);
+    }
+
+    // Initial load
+    function init(){
+      loadEntriesFromStorage();
+      renderEntryList();
+      renderWheel();
+      // start RAF loop
+      rafId = requestAnimationFrame(step);
+      // create audio context on first click on page or first audio action
+      document.addEventListener('click', ()=>{ if(!audioCtx) { try{ ensureAudioContext(); }catch(e){} } }, {once:true});
+      // allow keyboard spin: space or enter when focused on spinBtn
+      spinBtn.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); spinBtn.click(); }});
+      // ensure tickBuffer is ready after audio is created
+      if(audioCtx) tickBuffer = createTickBuffer();
+
+      // ensure labels reposition on resize
+      window.addEventListener('resize', ()=> {
+        renderWheel();
+      });
+
+      // If there are no entries (user deleted all) add placeholders
+      if(entries.length === 0){
+        entries = DEFAULT_ENTRIES.slice();
+        saveEntriesToStorage();
+      }
+    }
+
+    // Attempt to load optional applause file if user drags a file into page header
+    window.addEventListener('dragover', (e)=> e.preventDefault());
+    window.addEventListener('drop', async (e)=> {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if(!file) return;
+      if(!file.type.startsWith('audio/')) return;
+      ensureAudioContext();
+      const data = await file.arrayBuffer();
+      try{
+        applauseBuffer = await audioCtx.decodeAudioData(data.slice(0));
+        alert('Applause audio uploaded and will play on winner.');
+      }catch(err){
+        console.warn('Applause decode failed', err);
+        alert('Could not decode dropped audio.');
+      }
+    });
+
+    // Start
+    init();
+
+    // Accessibility: announce winner via aria-live label already used
+
+  })();
   </script>
 </body>
 </html>
