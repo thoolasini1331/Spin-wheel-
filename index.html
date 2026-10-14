@@ -4,98 +4,645 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>OASIS RECOVERY — Spin the Wheel</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Brand colors */
+    :root{
+      --deep-green: #063D22;
+      --metallic-gold: #D4A72C;
+      --cream: #F3E4C5;
+      --off-white: #F7F5EF;
+      --bg-accent: rgba(0,0,0,0.25);
+    }
+
+    /* Basic reset */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: "Times New Roman", Times, serif;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(6,61,34,0.45), transparent),
+                  radial-gradient(900px 500px at 90% 90%, rgba(6,61,34,0.2), transparent),
+                  var(--deep-green);
+      color: var(--off-white);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      min-height:100vh;
+    }
+
+    .stage {
+      width:100%;
+      max-width:1100px;
+      margin:auto;
+      position:relative;
+      padding:28px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:20px;
+    }
+
+    /* Decorative curtains / theater feel */
+    .curtain {
+      pointer-events:none;
+      position: absolute;
+      top:0;left:0;right:0;height:100%;
+      background:
+        linear-gradient(90deg, rgba(6,61,34,0.96) 0 10%, rgba(6,61,34,0.6) 40%, rgba(6,61,34,0.8) 60%, rgba(6,61,34,0.96) 100%);
+      z-index:0;
+      mask: radial-gradient(800px 200px at 50% 10%, black 0, transparent 45%);
+    }
+
+    header {
+      width:100%;
+      text-align:center;
+      z-index:2;
+    }
+    h1 {
+      font-size: clamp(20px, 3.2vw, 36px);
+      color: var(--cream);
+      font-weight:700;
+      font-style:italic;
+      letter-spacing:1px;
+      margin-bottom:6px;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 6px 18px rgba(2,2,2,0.6);
+    }
+    p.lead {
+      color: var(--off-white);
+      opacity:0.95;
+      margin-bottom:4px;
+      font-style:italic;
+      font-weight:700;
+      letter-spacing:0.6px;
+    }
+
+    /* Wheel area */
+    .wheel-wrap {
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      position:relative;
+      padding:18px;
+      z-index:3;
+    }
+
+    .podium {
+      position:absolute;
+      bottom:-6%;
+      width:70%;
+      max-width:640px;
+      height:120px;
+      transform:translateY(60px);
+      background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
+      border-radius: 12px;
+      box-shadow: 0 30px 40px rgba(0,0,0,0.6);
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      pointer-events:none;
+    }
+
+    /* Wheel container for perspective and frame */
+    .wheel-container {
+      width: min(78vmin, 720px);
+      height: min(78vmin, 720px);
+      max-width:720px;
+      max-height:720px;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transform-style:preserve-3d;
+      perspective:1200px;
+    }
+
+    /* Outer metallic rim */
+    .wheel-rim {
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        conic-gradient(from 180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.03)),
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06), transparent 6%),
+        linear-gradient(180deg, #e7cf66, #b68616);
+      border: 8px solid rgba(0,0,0,0.25);
+      box-shadow:
+        inset 0 10px 30px rgba(255,255,255,0.08),
+        inset 0 -12px 40px rgba(0,0,0,0.35),
+        0 20px 50px rgba(0,0,0,0.6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:4;
+    }
+
+    /* gold bead ring for lights */
+    .bead-ring {
+      position:absolute;
+      inset:6%;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+    }
+
+    .bulb {
+      --size:12px;
+      width:var(--size);
+      height:var(--size);
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff 0 18%, var(--metallic-gold) 24%, #8a6a14 65%);
+      box-shadow: 0 0 8px rgba(212,167,44,0.9), 0 1px 2px rgba(0,0,0,0.5);
+      transform-origin: center;
+      filter: saturate(1.05);
+    }
+
+    /* Wheel face with segments created via conic-gradient */
+    .wheel-face {
+      --segments: 12;
+      position:absolute;
+      inset:14%;
+      border-radius:50%;
+      background:
+        conic-gradient(
+          #063D22 0deg calc(360deg/var(--segments) ),
+          #D4A72C calc(360deg/var(--segments)) calc(2*360deg/var(--segments))
+        );
+      background-size: 100% 100%;
+      box-shadow:
+        inset 0 22px 40px rgba(255,255,255,0.06),
+        inset 0 -24px 40px rgba(0,0,0,0.5),
+        0 20px 40px rgba(0,0,0,0.5);
+      display:block;
+      transform: translateZ(40px);
+      overflow:visible;
+      z-index:6;
+    }
+
+    /* center hub */
+    .hub {
+      position:absolute;
+      width:22%;
+      height:22%;
+      border-radius:50%;
+      background: linear-gradient(180deg,#b98f2a,#5a3a0e);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--cream);
+      font-weight:700;
+      font-style:italic;
+      font-size: clamp(12px, 1.4vw, 20px);
+      text-align:center;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6), inset 0 4px 10px rgba(255,255,255,0.05);
+      z-index:8;
+      transform: translateZ(80px);
+    }
+
+    /* rotating wheel element wrapper (we rotate this) */
+    .wheel-spin {
+      position:absolute;
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      transform-origin:center center;
+      transition: transform 1s cubic-bezier(.1,.9,.2,1);
+      will-change: transform;
+    }
+
+    /* labels positioned via JS */
+    .label {
+      position:absolute;
+      left:50%;
+      top:6%;
+      transform-origin: 0 50%;
+      color:var(--cream);
+      text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+      font-weight:700;
+      font-style:italic;
+      font-size: clamp(10px, 1.4vw, 16px);
+      letter-spacing:0.6px;
+      white-space:nowrap;
+      padding:4px 8px;
+      pointer-events:none;
+    }
+
+    /* pointer (top) */
+    .pointer {
+      position:absolute;
+      top:2.6%;
+      left:50%;
+      transform:translateX(-50%);
+      width:0;height:0;
+      border-left:18px solid transparent;
+      border-right:18px solid transparent;
+      border-bottom:34px solid var(--metallic-gold);
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6));
+      z-index:10;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transform-origin:center;
+    }
+    .pointer::after{
+      content:"";
+      position:absolute;
+      top:-18px;
+      left:-8px;
+      width:16px;height:16px;
+      background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.7) 10%, #c79b1a 20%, #815e0e 70%);
+      border-radius:50%;
+      box-shadow: 0 0 12px rgba(212,167,44,0.9);
+    }
+
+    /* controls and announcement */
+    .controls {
+      margin-top: 6px;
+      display:flex;
+      gap:16px;
+      align-items:center;
+      z-index:6;
+    }
+    .spin-btn {
+      background: linear-gradient(180deg, #fff7d9, #d9b85a);
+      color: var(--deep-green);
+      border: 3px solid rgba(0,0,0,0.25);
+      padding: 14px 26px;
+      border-radius: 10px;
+      font-weight:700;
+      font-style:italic;
+      font-size: clamp(14px, 1.6vw, 20px);
+      cursor:pointer;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.55);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .spin-btn:active{ transform: translateY(2px) scale(.995) }
+
+    .announcement {
+      min-width:220px;
+      padding:12px 16px;
+      background: linear-gradient(180deg, rgba(247,245,239,0.06), rgba(0,0,0,0.12));
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.05);
+      color: var(--cream);
+      text-align:center;
+      font-style:italic;
+      font-weight:700;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+    }
+
+    /* small-screen adjustments */
+    @media (max-width:720px){
+      .podium{ display:none }
+      .wheel-container{ width:86vmin; height:86vmin }
+      .pointer{ border-left:14px solid transparent; border-right:14px solid transparent; border-bottom:28px solid var(--metallic-gold) }
+    }
+
+    /* animated glow when spinning */
+    .wheel-spin.spinning .bulb {
+      animation: bulbGlow 0.9s linear infinite;
+    }
+    @keyframes bulbGlow {
+      0% { filter: drop-shadow(0 0 6px rgba(212,167,44,0.8)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 12px rgba(212,167,44,1)); transform: scale(1.08); }
+      100% { filter: drop-shadow(0 0 6px rgba(212,167,44,0.8)); transform: scale(1); }
+    }
+
+    /* subtle wheel shadow */
+    .wheel-shadow {
+      position:absolute;
+      width:85%;
+      height:85%;
+      border-radius:50%;
+      filter: blur(26px);
+      background: radial-gradient(closest-side, rgba(0,0,0,0.55), transparent 50%);
+      bottom:-4%;
+      z-index:2;
+      transform: translateY(36px);
+    }
+
+  </style>
 </head>
 <body>
-  <main id="app">
-    <header class="hero">
-      <div class="hero-inner">
-        <h1 class="title">OASIS RECOVERY</h1>
-        <p class="subtitle">Spin the Wheel — A Journey of Possibilities</p>
-      </div>
-      <div id="musicToggle" class="music-toggle" title="Toggle background music" tabindex="0" role="button" aria-pressed="false">
-        ♪
-      </div>
+  <div class="stage" role="main">
+    <div class="curtain" aria-hidden="true"></div>
+
+    <header>
+      <h1>OASIS RECOVERY</h1>
+      <p class="lead">Spin the Wheel — A Journey of Possibilities</p>
     </header>
 
-    <section class="container">
-      <div class="left-panel">
-        <div class="wheel-wrap">
-          <canvas id="wheelCanvas" aria-label="Prize wheel" role="img"></canvas>
-          <div id="pointer" aria-hidden="true">
-            <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" class="pointer-svg">
-              <polygon points="50,6 62,30 38,30" fill="#D4A72C" stroke="#a57f1b" stroke-width="1.5"/>
-            </svg>
-          </div>
+    <div class="wheel-wrap" aria-hidden="false">
+      <div class="wheel-container" role="application" aria-label="Spinning prize wheel">
+        <div class="wheel-rim" aria-hidden="true"></div>
 
-          <button id="spinBtn" class="btn spin" aria-label="Spin">SPIN</button>
-          <button id="spinAgainBtn" class="btn spin-again" aria-label="Spin again">SPIN AGAIN</button>
-          <button id="resetBtn" class="btn reset" aria-label="Reset">RESET</button>
+        <div class="wheel-spin" id="wheel">
+          <div class="bead-ring" id="beads" aria-hidden="true"></div>
+          <div class="wheel-face" id="face" aria-hidden="true"></div>
+          <!-- labels will be injected here -->
+          <div class="hub" aria-hidden="true">OASIS</div>
         </div>
 
-        <div class="controls">
-          <div class="audio-uploads">
-            <label class="small">Upload background music (optional)
-              <input type="file" id="bgUpload" accept="audio/*" aria-label="Upload background music">
-            </label>
-            <label class="small">Upload cheering audio (optional)
-              <input type="file" id="cheerUpload" accept="audio/*" aria-label="Upload cheering audio">
-            </label>
-            <label class="small">Sound
-              <input type="checkbox" id="soundToggle" checked aria-label="Sound on/off">
-            </label>
-          </div>
-
-          <div class="fullscreen-row">
-            <button id="fullscreenBtn" class="btn small" aria-label="Enter fullscreen">Fullscreen</button>
-          </div>
-        </div>
-      </div>
-
-      <aside class="right-panel" aria-label="Management panel">
-        <section class="manage">
-          <h2>Entries</h2>
-          <form id="entryForm" aria-label="Add or edit entry">
-            <input id="entryName" placeholder="Entry name" required aria-label="Entry name">
-            <input id="entryURL" placeholder="https://example.com" type="url" aria-label="Entry URL">
-            <input id="entryColor" type="color" value="#063D22" aria-label="Entry color">
-            <div class="form-row">
-              <button id="addEntryBtn" class="btn small" type="submit">Add / Save</button>
-              <button id="restoreDefaultsBtn" class="btn small" type="button">Restore Defaults</button>
-            </div>
-          </form>
-
-          <div id="entriesList" class="entries" aria-live="polite"></div>
-        </section>
-
-        <section class="history" aria-label="Previous winners">
-          <h2>History</h2>
-          <div id="historyList" class="history-list"></div>
-          <button id="clearHistoryBtn" class="btn small" aria-label="Clear history">Clear history</button>
-        </section>
-      </aside>
-    </section>
-
-    <!-- Winner popup -->
-    <div id="winnerModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="modal-content" role="document">
-        <h3 class="winner-title">CONGRATULATIONS!</h3>
-        <p id="winnerName" class="winner-name"></p>
-        <div class="winner-actions">
-          <button id="openLinkBtn" class="btn" aria-label="Open selected link">OPEN SELECTED LINK</button>
-          <button id="closeWinnerBtn" class="btn" aria-label="Close winner popup">Close</button>
-        </div>
+        <div class="pointer" aria-hidden="true"></div>
+        <div class="wheel-shadow" aria-hidden="true"></div>
       </div>
     </div>
 
-    <!-- Canvas overlay for confetti/fireworks -->
-    <canvas id="effectsCanvas" class="effects-canvas" aria-hidden="true"></canvas>
+    <div class="controls" aria-live="polite">
+      <button class="spin-btn" id="spinBtn" aria-controls="wheel">SPIN</button>
+      <div class="announcement" id="announce">Ready to spin</div>
+    </div>
 
-    <footer class="footer">
-      <small>Elegant spin wheel by Oasis Recovery — built with HTML5 Canvas, CSS3 & JavaScript — Times New Roman required</small>
-    </footer>
-  </main>
+    <div class="podium" aria-hidden="true"></div>
+  </div>
 
-  <script src="script.js" defer></script>
+  <script>
+    (function(){
+      // Configuration
+      const segments = [
+        "Counselling",
+        "Detox Programme",
+        "Group Therapy",
+        "Aftercare",
+        "Family Support",
+        "One-on-One",
+        "Mindfulness",
+        "Relapse Prevention",
+        "Wellness Plan",
+        "Community Events",
+        "Peer Mentorship",
+        "Personal Growth"
+      ];
+      const SEG_COUNT = segments.length;
+      const wheel = document.getElementById('wheel');
+      const face = document.getElementById('face');
+      const beadsContainer = document.getElementById('beads');
+      const spinBtn = document.getElementById('spinBtn');
+      const announce = document.getElementById('announce');
+
+      // Prepare segments visuals using conic-gradient with alternating colors
+      function setFaceGradient(){
+        // Build gradient stops programmatically
+        const green = getComputedStyle(document.documentElement).getPropertyValue('--deep-green').trim();
+        const gold = getComputedStyle(document.documentElement).getPropertyValue('--metallic-gold').trim();
+        const slice = 360 / SEG_COUNT;
+        let stops = [];
+        for(let i=0;i<SEG_COUNT;i++){
+          const start = i*slice;
+          const mid = start + slice;
+          stops.push(`${(i%2===0)?green:gold} ${start}deg ${(start+0.0001)}deg`);
+          stops.push(`${(i%2===0)?gold:green} ${(start+0.0001)}deg ${mid}deg`);
+        }
+        face.style.background = `conic-gradient(${stops.join(',')})`;
+      }
+
+      // Create labels and position them around the wheel
+      function createLabels(){
+        // Remove any existing labels
+        const old = wheel.querySelectorAll('.label');
+        old.forEach(e=>e.remove());
+
+        const radius = wheel.clientWidth * 0.38; // radial position for labels
+        for(let i=0;i<SEG_COUNT;i++){
+          const angle = (360 / SEG_COUNT) * i;
+          const label = document.createElement('div');
+          label.className = 'label';
+          label.textContent = segments[i];
+          // rotate each label so it reads outward
+          label.style.transform = `rotate(${angle}deg) translate(-50%, 0)`;
+          // position by using transform-origin / top-left placement trick
+          // We'll set top/left using polar coords relative to center
+          const theta = (angle + (360 / SEG_COUNT) / 2) * Math.PI / 180;
+          const cx = wheel.clientWidth / 2;
+          const cy = wheel.clientHeight / 2;
+          // compute relative percentage offsets
+          const r = 0.38 * wheel.clientWidth;
+          const x = cx + Math.sin(theta) * r;
+          const y = cy - Math.cos(theta) * r;
+          label.style.left = (x / wheel.clientWidth * 100) + '%';
+          label.style.top = (y / wheel.clientHeight * 100) + '%';
+          // rotate label to follow wheel segment orientation (counter rotate text slightly)
+          label.style.transform = `translate(-50%,-50%) rotate(${angle + 90}deg)`;
+          label.setAttribute('aria-hidden','true');
+          wheel.appendChild(label);
+        }
+      }
+
+      // Create beads (lights) evenly around the rim
+      function createBeads(){
+        beadsContainer.innerHTML = '';
+        const beadCount = SEG_COUNT * 2;
+        const size = Math.max(Math.min(window.innerWidth * 0.01, 14), 8);
+        for(let i=0;i<beadCount;i++){
+          const b = document.createElement('div');
+          b.className = 'bulb';
+          b.style.setProperty('--size', size + 'px');
+          const angle = (360 / beadCount) * i;
+          b.style.position = 'absolute';
+          b.style.left = '50%';
+          b.style.top = '50%';
+          b.style.transform = `rotate(${angle}deg) translateY(-42%) translateX(-50%)`;
+          b.style.opacity = (i%2===0) ? 1 : 0.88;
+          beadsContainer.appendChild(b);
+        }
+      }
+
+      // Resize handler to reposition labels/beads
+      function layout(){
+        setFaceGradient();
+        createLabels();
+        createBeads();
+      }
+      window.addEventListener('resize', () => {
+        layout();
+      });
+
+      // Convert degrees to normalized 0-360
+      function norm(deg){
+        return ((deg % 360)+360)%360;
+      }
+
+      // Physics-based spinner using angular velocity & friction for realistic deceleration
+      let spinning = false;
+      let angular = 0; // current angle (degrees)
+      let velocity = 0; // degrees per second
+      let lastTs = null;
+      const friction = 0.995; // multiplicative friction per frame (tuned)
+      const minVelocity = 0.08; // threshold to stop
+
+      // get segment index at pointer (pointer at 0deg top). wheel rotation is clockwise for positive angles.
+      function getSelectedSegment(angle){
+        // angle is rotation of wheel in degrees, where 0 means initial orientation.
+        // Pointer at top (0deg) corresponds to angle 0. We want label under pointer, so:
+        const pointerAngle = norm(angle); // wheel angle mod 360
+        // Each slice spans slice deg; compute which slice aligns with pointer.
+        const slice = 360 / SEG_COUNT;
+        // Because labels were placed starting from 0deg, we can compute index:
+        // pointerAngle of 0 => segment index 0 (top). But orientation of label rotation may shift by half-slice.
+        // We will offset by half-slice so pointer catches the correct segment center.
+        const adj = norm(pointerAngle + slice/2);
+        let idx = Math.floor(adj / slice);
+        // Map to segments array index
+        idx = (SEG_COUNT - idx) % SEG_COUNT;
+        return idx;
+      }
+
+      // animate loop
+      function step(ts){
+        if(!lastTs) lastTs = ts;
+        const dt = (ts - lastTs) / 1000; // seconds
+        lastTs = ts;
+        if(spinning){
+          // integrate physics
+          // Apply friction scaled by dt
+          // Convert multiplicative friction into per-second dependent for consistency (approx):
+          velocity *= Math.pow(friction, dt*60); // tuned
+          // Apply slight constant torque while spinning for unpredictability
+          // Not adding torque; just decelerate
+          angular += velocity * dt;
+          // Render
+          wheel.style.transform = `rotate(${angular}deg)`;
+          // stop condition
+          if(Math.abs(velocity) < minVelocity){
+            spinning = false;
+            velocity = 0;
+            // Snap to exact segment center for crisp result
+            const selected = getSelectedSegment(angular);
+            // compute target angle where selected segment is exactly under pointer:
+            const slice = 360/SEG_COUNT;
+            const targetAngle = norm((360 - (selected * slice + slice/2)));
+            // animate small snap
+            const diff = norm(targetAngle - norm(angular));
+            const snap = diff > 180 ? diff - 360 : diff;
+            // apply small transition
+            const finalAngle = angular + snap;
+            wheel.style.transition = 'transform 900ms cubic-bezier(.2,.9,.25,1)';
+            requestAnimationFrame(()=>{
+              wheel.style.transform = `rotate(${finalAngle}deg)`;
+            });
+            setTimeout(()=>{
+              wheel.style.transition = '';
+              angular = finalAngle;
+              const winner = segments[selected];
+              announce.textContent = `Winner: ${winner}`;
+              announce.style.background = 'linear-gradient(180deg, rgba(212,167,44,0.06), rgba(0,0,0,0.12))';
+              spinBtn.disabled = false;
+              spinBtn.style.cursor = 'pointer';
+              wheel.classList.remove('spinning');
+            }, 950);
+            return;
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      // Start a spin. Randomize initial velocity and direction.
+      function startSpin(){
+        if(spinning) return;
+        spinning = true;
+        spinBtn.disabled = true;
+        spinBtn.style.cursor = 'wait';
+        announce.textContent = 'Spinning...';
+        announce.style.background = 'linear-gradient(180deg, rgba(247,245,239,0.02), rgba(0,0,0,0.06))';
+        // Random velocity: choose a number of full rotations between 6 and 12 then turn into deg/sec initial effectively
+        const rotations = Math.random()*6 + 6; // 6 to 12 rotations
+        const spinDuration = Math.random()*1700 + 2400; // ms, not directly used; used to shape velocity
+        // Convert to degrees and set initial velocity such that it will slowly decay
+        // We set velocity such that in absence of friction, it would finish in spinDuration.
+        const totalDegrees = rotations * 360;
+        const initialSpeed = totalDegrees / (spinDuration / 1000); // deg/s
+        // Randomize direction
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        velocity = initialSpeed * dir;
+        // Kick off animation loop (if not already)
+        lastTs = null;
+        wheel.classList.add('spinning');
+        // Also add a lively CSS transform (a subtle wobble while spinning)
+        // Start the RAF loop
+        requestAnimationFrame(step);
+      }
+
+      // click handler
+      spinBtn.addEventListener('click', startSpin);
+
+      // Initialize layout
+      layout();
+
+      // initial render state
+      wheel.style.transform = 'rotate(0deg)';
+      angular = 0;
+
+      // Accessibility: allow space/enter on button and keyboard spin
+      spinBtn.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startSpin(); }
+      });
+
+      // On load: animate in the wheel gently
+      window.addEventListener('load', ()=>{
+        wheel.style.transform = 'rotate(-6deg) scale(.98)';
+        setTimeout(()=> {
+          wheel.style.transition = 'transform 700ms cubic-bezier(.2,.9,.25,1)';
+          wheel.style.transform = 'rotate(0deg) scale(1)';
+          setTimeout(()=> wheel.style.transition = '', 900);
+        }, 140);
+      });
+
+      // Touch gestures: fling to spin (optional)
+      (function addFling(){
+        let startY = null, startTime = null;
+        let startAngleOnDown = null;
+
+        function down(e){
+          if(spinning) return;
+          const touch = e.touches ? e.touches[0] : e;
+          startY = touch.clientY;
+          startTime = Date.now();
+          startAngleOnDown = angular;
+        }
+        function up(e){
+          if(startY === null) return;
+          const touch = (e.changedTouches && e.changedTouches[0]) || e;
+          const dy = startY - touch.clientY;
+          const dt = Date.now() - startTime;
+          // fling if enough velocity
+          const velocityY = dy / Math.max(dt, 8);
+          if(Math.abs(velocityY) > 0.6){
+            // map vertical fling to angular velocity
+            const speed = velocityY * 5000; // tuned factor
+            velocity = speed;
+            spinning = true;
+            lastTs = null;
+            wheel.classList.add('spinning');
+            requestAnimationFrame(step);
+            spinBtn.disabled = true;
+            spinBtn.style.cursor = 'wait';
+            announce.textContent = 'Spinning...';
+          }
+          startY = null;
+        }
+        wheel.addEventListener('touchstart', down, {passive:true});
+        wheel.addEventListener('touchend', up, {passive:true});
+        wheel.addEventListener('mousedown', function(e){
+          // allow drag-to-spin on desktop by measuring mouse fling
+          down(e);
+          const upListener = function(ev){
+            up(ev);
+            window.removeEventListener('mouseup', upListener);
+          };
+          window.addEventListener('mouseup', upListener);
+        }, {passive:true});
+      })();
+
+      // initial announcement content
+      announce.textContent = 'Ready to spin';
+
+      // Friendly cleanup if user navigates away
+      window.addEventListener('beforeunload', ()=>{ spinning = false; });
+
+    })();
+  </script>
 </body>
 </html>
