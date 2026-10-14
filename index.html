@@ -3,112 +3,99 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Spin the Wheel — Game Show</title>
+  <title>OASIS RECOVERY — Spin the Wheel</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1>Spin the Wheel</h1>
-    <div class="top-actions">
-      <button id="fullscreenBtn" title="Full screen">⛶</button>
-      <button id="soundToggle" title="Sound On/Off">🔊</button>
-      <button id="openEntriesPanel">Entries ⚙️</button>
-    </div>
-  </header>
+  <main id="app">
+    <header class="hero">
+      <div class="hero-inner">
+        <h1 class="title">OASIS RECOVERY</h1>
+        <p class="subtitle">Spin the Wheel — A Journey of Possibilities</p>
+      </div>
+      <div id="musicToggle" class="music-toggle" title="Toggle background music" tabindex="0" role="button" aria-pressed="false">
+        ♪
+      </div>
+    </header>
 
-  <main class="main">
-    <section class="left">
-      <div class="wheel-wrap">
-        <canvas id="wheel" width="600" height="600" aria-label="Spin wheel"></canvas>
-        <div class="pointer" aria-hidden="true">▼</div>
+    <section class="container">
+      <div class="left-panel">
+        <div class="wheel-wrap">
+          <canvas id="wheelCanvas" aria-label="Prize wheel" role="img"></canvas>
+          <div id="pointer" aria-hidden="true">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" class="pointer-svg">
+              <polygon points="50,6 62,30 38,30" fill="#D4A72C" stroke="#a57f1b" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <button id="spinBtn" class="btn spin" aria-label="Spin">SPIN</button>
+          <button id="spinAgainBtn" class="btn spin-again" aria-label="Spin again">SPIN AGAIN</button>
+          <button id="resetBtn" class="btn reset" aria-label="Reset">RESET</button>
+        </div>
+
+        <div class="controls">
+          <div class="audio-uploads">
+            <label class="small">Upload background music (optional)
+              <input type="file" id="bgUpload" accept="audio/*" aria-label="Upload background music">
+            </label>
+            <label class="small">Upload cheering audio (optional)
+              <input type="file" id="cheerUpload" accept="audio/*" aria-label="Upload cheering audio">
+            </label>
+            <label class="small">Sound
+              <input type="checkbox" id="soundToggle" checked aria-label="Sound on/off">
+            </label>
+          </div>
+
+          <div class="fullscreen-row">
+            <button id="fullscreenBtn" class="btn small" aria-label="Enter fullscreen">Fullscreen</button>
+          </div>
+        </div>
       </div>
 
-      <div class="controls">
-        <button id="spinBtn" class="spin">SPIN NOW</button>
-        <button id="resetBtn" class="reset">RESET</button>
-        <button id="removeWinnerToggle" class="tiny">Remove Winner</button>
-        <button id="replayBtn" class="tiny">Replay Celebration</button>
-      </div>
+      <aside class="right-panel" aria-label="Management panel">
+        <section class="manage">
+          <h2>Entries</h2>
+          <form id="entryForm" aria-label="Add or edit entry">
+            <input id="entryName" placeholder="Entry name" required aria-label="Entry name">
+            <input id="entryURL" placeholder="https://example.com" type="url" aria-label="Entry URL">
+            <input id="entryColor" type="color" value="#063D22" aria-label="Entry color">
+            <div class="form-row">
+              <button id="addEntryBtn" class="btn small" type="submit">Add / Save</button>
+              <button id="restoreDefaultsBtn" class="btn small" type="button">Restore Defaults</button>
+            </div>
+          </form>
+
+          <div id="entriesList" class="entries" aria-live="polite"></div>
+        </section>
+
+        <section class="history" aria-label="Previous winners">
+          <h2>History</h2>
+          <div id="historyList" class="history-list"></div>
+          <button id="clearHistoryBtn" class="btn small" aria-label="Clear history">Clear history</button>
+        </section>
+      </aside>
     </section>
 
-    <aside class="right">
-      <div class="panel">
-        <h2>Selected</h2>
-        <div id="selectedInfo" class="selectedInfo">No spin yet</div>
-        <div class="selected-actions">
-          <a id="openLinkBtn" class="openLink hidden" target="_blank" rel="noopener">OPEN SELECTED LINK 🔗</a>
+    <!-- Winner popup -->
+    <div id="winnerModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="modal-content" role="document">
+        <h3 class="winner-title">CONGRATULATIONS!</h3>
+        <p id="winnerName" class="winner-name"></p>
+        <div class="winner-actions">
+          <button id="openLinkBtn" class="btn" aria-label="Open selected link">OPEN SELECTED LINK</button>
+          <button id="closeWinnerBtn" class="btn" aria-label="Close winner popup">Close</button>
         </div>
       </div>
+    </div>
 
-      <div class="panel">
-        <h2>History</h2>
-        <div id="history" class="history"></div>
-        <div class="history-actions">
-          <button id="clearHistory" class="tiny">Clear History</button>
-        </div>
-      </div>
+    <!-- Canvas overlay for confetti/fireworks -->
+    <canvas id="effectsCanvas" class="effects-canvas" aria-hidden="true"></canvas>
 
-      <div class="panel">
-        <h2>Audio / Celebration</h2>
-        <label class="row">Custom celebration audio:
-          <input type="file" id="celebrationFile" accept="audio/*">
-        </label>
-        <div class="row small">
-          <label>Spinning tick volume <input type="range" id="tickVolume" min="0" max="1" step="0.01" value="0.3"></label>
-        </div>
-        <div class="row small">
-          <label>Celebration volume <input type="range" id="celebrationVolume" min="0" max="1" step="0.01" value="0.7"></label>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>About</h2>
-        <p>Manage entries and links in the Entries panel (⚙️). Wheel updates instantly. Works offline & uses localStorage.</p>
-        <p class="muted">Designed for GitHub Pages. Uses Canvas + WebAudio; no external libraries required.</p>
-      </div>
-    </aside>
+    <footer class="footer">
+      <small>Elegant spin wheel by Oasis Recovery — built with HTML5 Canvas, CSS3 & JavaScript — Times New Roman required</small>
+    </footer>
   </main>
 
-  <!-- Entries Panel (modal / drawer) -->
-  <div id="entriesPanel" class="entriesPanel hidden" role="dialog" aria-modal="true">
-    <div class="entriesInner">
-      <header>
-        <h2>Entries</h2>
-        <button id="closeEntries">Close ✕</button>
-      </header>
-
-      <form id="entryForm" class="entryForm">
-        <input id="entryTitle" placeholder="Name / Title" required>
-        <input id="entryURL" placeholder="URL (optional)" type="url">
-        <button type="submit">Add / Update</button>
-      </form>
-
-      <div class="entriesListWrap">
-        <ul id="entriesList" class="entriesList"></ul>
-      </div>
-
-      <div class="entriesFooter">
-        <button id="clearEntries" class="tiny danger">Clear All</button>
-        <div class="muted small">Entries saved in your browser localStorage.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Winner Overlay -->
-  <div id="winnerOverlay" class="winnerOverlay hidden">
-    <div class="winnerCard">
-      <h2 id="congratsTitle">CONGRATULATIONS! 🎉</h2>
-      <div id="winnerName" class="winnerName"></div>
-      <div class="winnerButtons">
-        <a id="openLinkLarge" class="openLink large" target="_blank" rel="noopener">OPEN SELECTED LINK 🔗</a>
-        <button id="closeWinner" class="tiny">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Canvas for confetti/fireworks overlay -->
-  <canvas id="effectsCanvas" class="effectsCanvas" aria-hidden="true"></canvas>
-
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
