@@ -33,30 +33,30 @@
       max-width:1200px;
       margin:24px auto;
       display:grid;
-      grid-template-columns: 1fr 360px;
+      grid-template-columns: 1fr;
       gap:28px;
       align-items:start;
+      position:relative;
     }
 
     /* Header / brand */
     header{
       grid-column: 1 / -1;
-      text-align:center;
-      margin-bottom:8px;
       display:flex;
       align-items:center;
-      justify-content:center;
+      justify-content:space-between;
       gap:18px;
       flex-wrap:wrap;
+      margin-bottom:8px;
       padding:8px 12px;
     }
 
-    /* New brand layout */
+    /* Left part: brand (logo + title) */
     .brand-wrap{
       display:flex;
       align-items:center;
       gap:18px;
-      justify-content:center;
+      justify-content:flex-start;
       flex-wrap:nowrap;
     }
     .brand-logo{
@@ -69,8 +69,8 @@
     .brand-text {
       display:flex;
       flex-direction:column;
-      align-items:center;
-      text-align:center;
+      align-items:flex-start;
+      text-align:left;
       line-height:0.9;
     }
     .brand-name{
@@ -101,6 +101,31 @@
       opacity:0.95;
     }
 
+    /* Top-right controls: settings gear + fullscreen */
+    .top-controls {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .icon-btn{
+      background: transparent;
+      border: 0;
+      color: var(--metallic-gold);
+      font-size: 22px;
+      cursor:pointer;
+      padding:10px;
+      border-radius:8px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition: background .12s ease, transform .12s ease;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+    }
+    .icon-btn:hover{ background: rgba(212,167,44,0.06); transform: translateY(-2px) }
+    .icon-btn:active{ transform: translateY(0) }
+
+    /* Subtitle below header */
     p.subtitle {
       width:100%;
       margin-top:6px;
@@ -109,15 +134,29 @@
       font-style:italic;
       margin-bottom:16px;
       text-align:center;
+      grid-column: 1 / -1;
     }
 
-    /* Left column contains the wheel and controls */
+    /* Main area (wheel + controls) */
+    .main {
+      display:flex;
+      gap:28px;
+      align-items:flex-start;
+      justify-content:center;
+      width:100%;
+    }
+
+    /* Wheel container column */
     .left {
       background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.06));
       padding:18px;
       border-radius:12px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       position:relative;
+      flex:1 1 720px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
 
     .wheel-area{
@@ -184,8 +223,7 @@
       z-index:7;
     }
 
-    /* Labels placed inside wheel. They rotate together with the wheel because they are children of .wheel-spin
-       Use black text, Times New Roman Bold Italic, centered, allow wrap up to 2 lines, auto-fit font size via JS. */
+    /* Labels placed inside wheel (black text) */
     .segment-label {
       position:absolute;
       left:50%;
@@ -226,33 +264,53 @@
       z-index:12;
     }
 
-    /* fixed pointer at top */
-    .pointer {
+    /* fixed pointer at top with hinge & flapper */
+    .pointer-wrap {
       position:absolute;
       top:6%;
       left:50%;
       transform:translateX(-50%);
-      width:0;height:0;
-      border-left:20px solid transparent;
-      border-right:20px solid transparent;
-      border-bottom:36px solid var(--metallic-gold);
-      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
-      z-index:20;
+      z-index:30;
+      display:flex;
+      align-items:flex-start;
+      pointer-events:none;
+    }
+
+    .pointer-hinge {
+      width:36px; height:12px;
+      background: linear-gradient(180deg,#b98f2a,#7a5a10);
+      border-radius:6px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+      transform-origin:center top;
       display:flex;
       align-items:center;
       justify-content:center;
-      transform-origin:center;
     }
-    .pointer::after{
-      content:"";
-      position:absolute;
-      top:-18px;
-      left:-10px;
-      width:20px;height:20px;
-      background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.7) 10%, #c79b1a 20%, #815e0e 70%);
-      border-radius:50%;
-      box-shadow: 0 0 12px rgba(212,167,44,0.95);
+
+    .pointer {
+      margin-top:6px;
+      width:0;height:0;
+      border-left:18px solid transparent;
+      border-right:18px solid transparent;
+      border-top:0;
+      border-bottom:36px solid var(--metallic-gold); /* triangle points DOWN into wheel */
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
+      transform-origin: top center;
+      transition: transform 0.08s linear;
+      will-change: transform;
+      display:block;
     }
+    /* small decorative bolt below hinge */
+    .pointer-bolt {
+      width:8px; height:8px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #c79b1a);
+      box-shadow: 0 0 8px rgba(212,167,44,0.95);
+      position:relative; top:-8px;
+    }
+
+    /* slight flapper/hinge animation on tick */
+    .pointer--tick { transform: rotate(-8deg) translateY(2px); }
+    .pointer--tick .pointer { transform: rotate(6deg); }
 
     .controls {
       display:flex;
@@ -299,43 +357,38 @@
       box-shadow: 0 10px 26px rgba(0,0,0,0.45);
     }
 
-    /* Right column is entry manager and audio controls */
-    .right {
-      background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.06));
+    /* Settings sliding panel (hidden by default) */
+    .settings-overlay {
+      position: fixed;
+      right: 0; top:0; bottom:0;
+      width: 420px;
+      max-width: 92vw;
+      transform: translateX(110%);
+      transition: transform 320ms cubic-bezier(.2,.9,.2,1);
+      z-index: 10020;
+      box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,245,239,0.96));
+      color: var(--deep-green);
       padding:18px;
-      border-radius:12px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      height:fit-content;
+      overflow:auto;
+      border-left: 1px solid rgba(0,0,0,0.06);
     }
-    .panel-title {
-      font-size:18px;
-      margin-bottom:8px;
-      font-weight:700;
-      font-style:italic;
-    }
-    label{font-size:13px;display:block;margin-top:8px;color:var(--off-white);opacity:0.95;font-weight:700;font-style:italic}
-    input[type="text"], input[type="url"]{
-      width:100%;
-      padding:8px 10px;
-      margin-top:6px;
-      border-radius:8px;
-      border:1px solid rgba(0,0,0,0.2);
-      background:var(--off-white);
-      color:var(--deep-green);
-      font-family:"Times New Roman", Times, serif;
-      font-weight:700;
-      font-style:italic;
-    }
-    .entry-list{ margin-top:12px; display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto; padding-right:6px }
-    .entry-item{ display:flex; gap:8px; align-items:center; justify-content:space-between; background: rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.02) }
-    .entry-item .meta{flex:1; overflow:hidden}
-    .entry-item .meta b{ display:block; font-weight:700; font-style:italic; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-    .entry-item .meta small{ display:block; font-size:12px; opacity:0.85; color:var(--off-white) }
-    .entry-item .actions{ display:flex; gap:6px; margin-left:8px; flex-shrink:0 }
+    .settings-overlay.open { transform: translateX(0); }
 
-    .file-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .settings-header {
+      display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;
+    }
+    .settings-title { font-weight:700; font-style:italic; font-size:18px; }
 
-    .music-controls { display:flex; gap:8px; align-items:center; margin-top:12px; justify-content:space-between }
+    .settings-section { margin-top:14px; padding-bottom:10px; border-bottom:1px solid rgba(0,0,0,0.04) }
+    .settings-section h3 { margin:0 0 8px 0; font-size:15px; font-weight:700; font-style:italic; color:var(--deep-green) }
+    .settings-row { display:flex; gap:8px; align-items:center; margin-top:6px; }
+
+    .small { font-size:13px; color: #23482f; }
+
+    /* winner history list */
+    .history-list { max-height:180px; overflow:auto; margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+    .history-item { background: rgba(6,61,34,0.03); padding:8px; border-radius:6px; font-size:13px; color:#072a1a }
 
     /* popup overlay */
     .overlay {
@@ -361,6 +414,7 @@
     .popup h2{ margin-bottom:8px; font-style:italic; font-weight:700; font-size:28px }
     .popup p{ margin-bottom:14px; font-weight:700; font-style:italic; color: #2b4b33 }
     .popup .popup-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px }
+    .popup .popup-actions .btn { color: #000000; } /* black wording requirement */
 
     /* confetti canvas overlay */
     #confetti {
@@ -370,16 +424,21 @@
       z-index:9998;
     }
 
+    /* Body fullscreen adjustments */
+    body.fullscreen {
+      padding: 8px;
+    }
+    body.fullscreen .container { max-width: 1600px; }
+    body.fullscreen .left { width: 100%; max-width: 1100px; }
+    body.fullscreen .wheel-container { max-width: 92vw; }
+
     @media (max-width:980px){
-      .container{ grid-template-columns: 1fr; padding-bottom:48px; }
-      .right{ order:2; margin-top:16px }
-      .left{ order:1 }
-      .wheel-container{ max-width:86vmin }
-      .pointer{ border-left:16px solid transparent; border-right:16px solid transparent; border-bottom:30px solid var(--metallic-gold) }
-      /* Stack brand nicely on small screens */
-      header { flex-direction: column; gap:6px; padding-bottom:6px; }
-      .brand-logo{ width:72px; }
-      .brand-name{ font-size: clamp(18px, 5.4vw, 28px); }
+      header{ flex-direction: column; align-items:stretch; gap:8px }
+      .brand-wrap{ justify-content:center }
+      .top-controls{ justify-content:center }
+      .main{ flex-direction:column; align-items:center }
+      .settings-overlay{ width:100%; max-width:100%; left:0; right:0; transform: translateY(-120%); top:auto; bottom:0; transition: transform 320ms; border-left:none; border-top:1px solid rgba(0,0,0,0.04) }
+      .settings-overlay.open { transform: translateY(0); }
     }
   </style>
 </head>
@@ -389,7 +448,7 @@
   <div class="container" role="main">
     <header>
       <div class="brand-wrap" role="banner" aria-label="Oasis Recovery brand">
-        <!-- Inline SVG logo (placed beside heading) -->
+        <!-- Inline SVG logo -->
         <svg class="brand-logo" viewBox="0 0 700 700" aria-label="Oasis Recovery logo" role="img" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -399,26 +458,18 @@
               <stop offset="100%" stop-color="#f4d36d"/>
             </linearGradient>
           </defs>
-
-          <!-- outer circular ring -->
           <circle cx="350" cy="350" r="250" fill="#f4f1ea" stroke="url(#goldGrad)" stroke-width="18"/>
           <path d="M70 320 Q350 500 630 320" fill="none" stroke="url(#goldGrad)" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
-
-          <!-- leaves -->
           <g fill="#063D22" stroke="#063D22" stroke-width="2" transform="translate(0,15)">
             <path d="M115 235 C100 190, 130 170, 170 180 C145 210, 125 230, 115 235Z"/>
             <path d="M105 300 C88 260, 120 230, 170 238 C150 275, 120 295, 105 300Z"/>
             <path d="M515 255 C545 215, 590 205, 620 230 C585 255, 555 282, 515 255Z"/>
             <path d="M535 300 C560 255, 605 255, 635 290 C595 316, 560 322, 535 300Z"/>
           </g>
-
-          <!-- hands -->
           <g fill="#063D22" stroke="#063D22" stroke-width="4" opacity="0.95">
             <path d="M150 440 C190 415, 220 420, 245 442 C255 450, 260 470, 248 484 C228 505, 193 522, 158 514 C134 509, 130 474, 150 440Z"/>
             <path d="M520 440 C490 412, 455 420, 430 442 C418 450, 412 470, 424 484 C444 505, 480 523, 513 514 C538 509, 545 475, 520 440Z"/>
           </g>
-
-          <!-- psi-like inner mark -->
           <g transform="translate(350 350)">
             <path d="M0 -116
                      C-58 -116, -96 -75, -96 -32
@@ -442,8 +493,6 @@
                      C-60 -60, -34 -82, 0 -82Z"
                   fill="url(#goldGrad)" />
           </g>
-
-          <!-- bottom palms -->
           <g fill="#063D22" stroke="#063D22" stroke-width="4">
             <path d="M190 522 C215 555, 280 578, 350 580 C420 578, 485 557, 510 522 C508 560, 471 604, 350 628 C229 604, 192 560, 190 522Z"/>
           </g>
@@ -456,38 +505,62 @@
         </div>
       </div>
 
+      <div class="top-controls" role="toolbar" aria-label="Top controls">
+        <button id="fsBtn" class="icon-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">⛶</button>
+        <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Open settings">⚙️</button>
+      </div>
+
       <p class="subtitle">Spin the Wheel — A Journey of Possibilities</p>
     </header>
 
-    <section class="left" aria-labelledby="wheel-heading">
-      <div class="wheel-area">
-        <div class="wheel-container" aria-hidden="false">
-          <div class="wheel-outer" aria-hidden="true"></div>
+    <div class="main">
+      <section class="left" aria-labelledby="wheel-heading">
+        <div class="wheel-area">
+          <div class="wheel-container" aria-hidden="false">
+            <div class="wheel-outer" aria-hidden="true"></div>
 
-          <div class="wheel-spin" id="wheel" aria-live="off" aria-atomic="true">
-            <div class="wheel-face" id="wheelFace" aria-hidden="true"></div>
-            <!-- labels are injected dynamically inside .wheel-spin -->
-            <div class="hub">OASIS</div>
+            <div class="wheel-spin" id="wheel" aria-live="off" aria-atomic="true">
+              <div class="wheel-face" id="wheelFace" aria-hidden="true"></div>
+              <!-- labels are injected dynamically inside .wheel-spin -->
+              <div class="hub">OASIS</div>
+            </div>
+
+            <!-- pointer with hinge/flapper; fixed at top, triangle points DOWN into wheel -->
+            <div class="pointer-wrap" aria-hidden="true">
+              <div class="pointer-hinge" id="pointerHinge">
+                <div class="pointer-bolt"></div>
+              </div>
+              <div style="height:6px"></div>
+              <div class="pointer" id="pointerTriangle"></div>
+            </div>
+
           </div>
 
-          <div class="pointer" aria-hidden="true"></div>
-        </div>
+          <div class="controls" role="group" aria-label="Wheel controls">
+            <button id="spinBtn" class="btn" title="Spin the wheel now">SPIN NOW</button>
+            <button id="spinAgainBtn" class="btn secondary" title="Spin again without resetting">SPIN AGAIN</button>
+            <button id="resetBtn" class="btn secondary" title="Reset wheel and clear winner">RESET</button>
+          </div>
 
-        <div class="controls" role="group" aria-label="Wheel controls">
-          <button id="spinBtn" class="btn" title="Spin the wheel now">SPIN NOW</button>
-          <button id="spinAgainBtn" class="btn secondary" title="Spin again without resetting">SPIN AGAIN</button>
-          <button id="resetBtn" class="btn secondary" title="Reset wheel and clear winner">RESET</button>
+          <div class="announcement" id="announcement" role="status" aria-live="polite">
+            Ready to spin
+          </div>
         </div>
+      </section>
+    </div>
 
-        <div class="announcement" id="announcement" role="status" aria-live="polite">
-          Ready to spin
+    <!-- Settings sliding panel (top-right gear opens this) -->
+    <aside class="settings-overlay" id="settingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="settings-header">
+        <div class="settings-title">Settings</div>
+        <div>
+          <button id="closeSettings" class="icon-btn" title="Close settings" aria-label="Close settings">✕</button>
         </div>
       </div>
-    </section>
 
-    <aside class="right" aria-labelledby="manage-heading">
-      <div>
-        <div class="panel-title" id="manage-heading">Manage Wheel Entries</div>
+      <!-- Manage Entries -->
+      <div class="settings-section" id="entriesSection">
+        <h3>Manage Wheel Entries</h3>
 
         <label for="entryName">Entry Name</label>
         <input id="entryName" type="text" placeholder="Person or Prize name" />
@@ -502,42 +575,84 @@
 
         <div class="entry-list" id="entryList" aria-live="polite" aria-atomic="true"></div>
 
-        <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0">
+        <div style="margin-top:10px; font-size:13px; color:#23482f">
+          Tip: Names will appear inside their wheel segments in black, Times New Roman Bold Italic.
+        </div>
+      </div>
 
-        <div class="panel-title">Audio & Music</div>
+      <!-- Sound settings (click + applause) -->
+      <div class="settings-section" id="soundSection">
+        <h3>Sound Settings</h3>
 
-        <div class="file-row">
-          <label for="uploadMusic" style="margin:0">Upload MP3 (optional)</label>
-          <input id="uploadMusic" type="file" accept="audio/*" />
+        <div class="settings-row">
+          <label class="small"><input type="checkbox" id="clickEnabled" checked /> Mechanical clicking sound</label>
         </div>
 
-        <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
-          <button id="musicToggle" class="btn secondary">MUSIC: OFF</button>
-          <div style="flex:1">
-            <label for="volume" style="margin:0;font-size:12px">Volume</label>
-            <input id="volume" type="range" min="0" max="1" step="0.01" value="0.28" />
-          </div>
+        <div class="settings-row">
+          <label class="small">Click Volume</label>
+          <input id="clickVolume" type="range" min="0" max="1" step="0.01" value="0.9" style="flex:1" />
         </div>
 
-        <div style="margin-top:10px; font-size:13px; opacity:0.92">
-          Music will start after you enable it (user interaction required by browsers).
+        <div class="settings-row">
+          <label class="small" style="flex:1">Upload custom ratchet (optional)</label>
+        </div>
+        <div class="settings-row">
+          <input id="uploadClick" type="file" accept="audio/*" />
+          <button id="previewClickBtn" class="btn secondary">Preview</button>
         </div>
 
+        <div style="height:8px"></div>
+
+        <div class="settings-row">
+          <label class="small" style="flex:1">Upload celebration applause (optional)</label>
+        </div>
+        <div class="settings-row">
+          <input id="uploadApplause" type="file" accept="audio/*" />
+          <button id="previewApplauseBtn" class="btn secondary">Preview</button>
+        </div>
+
+        <div class="settings-row" style="margin-top:8px">
+          <label class="small">Applause Volume</label>
+          <input id="applauseVolume" type="range" min="0" max="1" step="0.01" value="0.9" style="flex:1" />
+        </div>
+      </div>
+
+      <!-- Other settings -->
+      <div class="settings-section" id="otherSection">
+        <h3>Other Settings</h3>
+        <div style="margin-top:6px">
+          <div class="small">Spin duration is fixed at 20 seconds (20000 ms).</div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+          <button id="viewHistoryBtn" class="btn secondary">View Winner History</button>
+          <button id="clearHistoryBtn" class="btn secondary">Clear History</button>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+          <button id="resetEntriesBtn" class="btn secondary">Reset Entries</button>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="small">Winner history (most recent first):</div>
+          <div class="history-list" id="winnerHistory"></div>
+        </div>
       </div>
     </aside>
-  </div>
 
-  <!-- Winner Popup placeholder -->
-  <div id="winnerOverlay" class="overlay" style="display:none" aria-hidden="true">
-    <div class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
-      <h2 id="popupTitle">CONGRATULATIONS!</h2>
-      <p id="popupSelected">Selected: ---</p>
-      <div class="popup-actions" id="popupActions">
-        <button id="openLinkBtn" class="btn">OPEN SELECTED LINK</button>
-        <button id="popupSpinAgain" class="btn secondary">SPIN AGAIN</button>
-        <button id="closePopup" class="btn secondary">CLOSE</button>
+    <!-- Winner Popup placeholder -->
+    <div id="winnerOverlay" class="overlay" style="display:none" aria-hidden="true">
+      <div class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+        <h2 id="popupTitle">CONGRATULATIONS!</h2>
+        <p id="popupSelected">Selected: ---</p>
+        <div class="popup-actions" id="popupActions">
+          <button id="openLinkBtn" class="btn">OPEN SELECTED LINK</button>
+          <button id="popupSpinAgain" class="btn secondary">SPIN AGAIN</button>
+          <button id="closePopup" class="btn secondary">CLOSE</button>
+        </div>
       </div>
     </div>
+
   </div>
 
   <script>
@@ -550,15 +665,28 @@
     const resetBtn = document.getElementById('resetBtn');
     const announcement = document.getElementById('announcement');
 
+    // Entry controls (moved into settings)
     const entryNameInput = document.getElementById('entryName');
     const entryUrlInput = document.getElementById('entryUrl');
     const addBtn = document.getElementById('addBtn');
     const saveBtn = document.getElementById('saveBtn');
     const entryList = document.getElementById('entryList');
 
-    const uploadMusic = document.getElementById('uploadMusic');
-    const musicToggle = document.getElementById('musicToggle');
-    const volumeSlider = document.getElementById('volume');
+    // New sound controls
+    const clickEnabledCheckbox = document.getElementById('clickEnabled');
+    const clickVolumeSlider = document.getElementById('clickVolume');
+    const uploadClick = document.getElementById('uploadClick');
+    const previewClickBtn = document.getElementById('previewClickBtn');
+
+    const uploadApplause = document.getElementById('uploadApplause');
+    const previewApplauseBtn = document.getElementById('previewApplauseBtn');
+    const applauseVolumeSlider = document.getElementById('applauseVolume');
+
+    // settings and fullscreen
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const closeSettings = document.getElementById('closeSettings');
+    const fsBtn = document.getElementById('fsBtn');
 
     const confettiCanvas = document.getElementById('confetti');
 
@@ -568,8 +696,18 @@
     const popupSpinAgain = document.getElementById('popupSpinAgain');
     const closePopup = document.getElementById('closePopup');
 
+    const pointerWrap = document.querySelector('.pointer-wrap');
+    const pointerTriangle = document.getElementById('pointerTriangle');
+    const pointerHinge = document.getElementById('pointerHinge');
+
+    const winnerHistoryEl = document.getElementById('winnerHistory');
+    const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const resetEntriesBtn = document.getElementById('resetEntriesBtn');
+
     /* ========= state & constants ========= */
     const STORAGE_KEY = 'oasis-wheel-entries-v1';
+    const HISTORY_KEY = 'oasis-wheel-winners-v1';
     const DEFAULT_ENTRIES = [
       {name:"Counselling", url:"https://example.org/counselling"},
       {name:"Detox Programme", url:"https://example.org/detox"},
@@ -584,24 +722,25 @@
     let selectedIndex = null;
     let winner = null;
 
-    // Spin control (we implement exactly 20 seconds spin)
-    const SPIN_DURATION = 20000; // ms (20 seconds)
+    // Spin control (20 seconds)
+    const SPIN_DURATION = 20000; // ms
     let spinStartTime = null;
     let spinStartAngle = 0;
     let spinTotalDegrees = 0;
     let spinning = false;
     let raf = null;
     let lastSegmentUnderPointer = null;
+    let lastFrameTime = null;
 
-    // Audio
+    // Audio (Web Audio API)
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     let masterGain = null;
-    let musicGain = null;
-    let musicSource = null;
-    let uploadedMusicBuffer = null;
-    let tickBuffer = null;
-    let applauseBuffer = null;
+    let clickBuffer = null; // generated tick or uploaded ratchet
+    let applauseBuffer = null; // uploaded applause
+    // volume settings used when playing
+    function getClickVolume(){ return parseFloat(clickVolumeSlider.value || 0.9); }
+    function getApplauseVolume(){ return parseFloat(applauseVolumeSlider.value || 0.9); }
 
     // confetti
     const confettiCtx = confettiCanvas.getContext('2d');
@@ -627,9 +766,38 @@
       saveEntriesToStorage();
     }
 
+    /* Winner history */
+    function loadWinnerHistory(){ 
+      try{
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if(raw) return JSON.parse(raw);
+      }catch(e){}
+      return [];
+    }
+    function pushWinnerHistory(record){
+      const hist = loadWinnerHistory();
+      hist.unshift(record);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    }
+    function clearWinnerHistory(){
+      localStorage.removeItem(HISTORY_KEY);
+    }
+    function renderWinnerHistory(){
+      const hist = loadWinnerHistory();
+      winnerHistoryEl.innerHTML = '';
+      if(!hist.length){
+        winnerHistoryEl.innerHTML = '<div class="small">No winners yet</div>';
+        return;
+      }
+      hist.forEach(h => {
+        const el = document.createElement('div'); el.className = 'history-item';
+        el.textContent = `${h.time} — ${h.name}` + (h.url ? ` — ${h.url}` : '');
+        winnerHistoryEl.appendChild(el);
+      });
+    }
+
     /* ========= wheel rendering & labels inside segments ========= */
 
-    // Remove any old labels and build new ones inside .wheel-spin
     function renderWheel(){
       const n = Math.max(entries.length, 1);
       const slice = 360 / n;
@@ -650,35 +818,30 @@
       const rect = wheel.getBoundingClientRect();
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      // choose radial position: 65% of distance from center to outer edge (user wanted 60-70%)
       const radius = Math.min(centerX, centerY) * 0.65;
 
       for(let i=0;i<n;i++){
         const angleMid = (i * slice) + slice/2;
-        // polar -> cartesian
         const theta = angleMid * Math.PI / 180;
         const x = centerX + Math.sin(theta) * radius;
         const y = centerY - Math.cos(theta) * radius;
 
         const label = document.createElement('div');
         label.className = 'segment-label';
-        // Set content (allow 2 lines)
         label.innerText = entries[i] && entries[i].name ? entries[i].name : `Entry ${i+1}`;
-        // position at x,y relative to wheel (percent)
+
         label.style.left = (x / rect.width * 100) + '%';
         label.style.top = (y / rect.height * 100) + '%';
-        // width: approximate available arc chord length at that radius
+
         const sliceRad = slice * Math.PI / 180;
         const chord = 2 * radius * Math.sin(sliceRad/2);
         const labelWidth = Math.max( Math.min(chord * 0.9, rect.width * 0.45), 40 );
         label.style.width = Math.round(labelWidth) + 'px';
-        // set a max height for two lines (approx)
-        const maxLabelHeight = Math.round(parseFloat(window.getComputedStyle(label).fontSize || 16) * 2.6);
+        const rectStyle = window.getComputedStyle(label);
+        const defaultFont = parseFloat(rectStyle.fontSize || 16);
+        const maxLabelHeight = Math.round(defaultFont * 2.6);
         label.style.maxHeight = Math.round(maxLabelHeight * 2) + 'px';
-        // we do not rotate the label itself; because labels are children of .wheel-spin they rotate WITH the wheel automatically
-        // center text within label via transform
         label.style.transform = 'translate(-50%,-50%)';
-        // Styling specifics required
         label.style.color = '#000000';
         label.style.fontFamily = '"Times New Roman", Times, serif';
         label.style.fontWeight = '700';
@@ -690,24 +853,18 @@
         label.style.lineHeight = '1.02';
         label.style.whiteSpace = 'normal';
         label.style.wordBreak = 'break-word';
-        // Append then adjust font-size to fit up to two lines
         wheel.appendChild(label);
         fitLabelTextToBox(label, 2);
       }
     }
 
-    // Adjust font-size so text fits within label area up to maxLines lines.
     function fitLabelTextToBox(label, maxLines){
       if(!label) return;
-      const computed = window.getComputedStyle(label);
-      // start with a size relative to wheel
       const rect = wheel.getBoundingClientRect();
       let fontSize = Math.min(18, Math.max(12, rect.width * 0.028));
       label.style.fontSize = fontSize + 'px';
       label.style.lineHeight = 1.02;
-      // measure and reduce font-size until it fits within allowed height (approx)
       const maxHeight = maxLines * (fontSize * 1.05);
-      // allow small loop to reduce size if overflow
       for(let i=0;i<10;i++){
         const h = label.scrollHeight;
         if(h > maxHeight && fontSize > 9){
@@ -715,56 +872,101 @@
           label.style.fontSize = fontSize + 'px';
         } else break;
       }
-      // final clamp to ensure text does not overflow label width by using word-break
     }
 
-    /* ========= audio utilities (tick & generated) ========= */
+    /* ========= Audio: WebAudio for clicks + applause ========= */
     function ensureAudioContext(){
       if(audioCtx) return;
       audioCtx = new AudioCtx();
       masterGain = audioCtx.createGain(); masterGain.gain.value = 0.9;
-      musicGain = audioCtx.createGain(); musicGain.gain.value = parseFloat(volumeSlider.value);
-      musicGain.connect(masterGain);
       masterGain.connect(audioCtx.destination);
-      tickBuffer = createTickBuffer();
+      // create default synthetic click buffer for ratchet
+      clickBuffer = createSyntheticClickBuffer();
     }
-    function createTickBuffer(){
+
+    function createSyntheticClickBuffer(){
       const ctx = audioCtx || (new (window.AudioContext || window.webkitAudioContext)());
-      const len = Math.floor(ctx.sampleRate * 0.028); // ~28ms
+      const len = Math.floor(ctx.sampleRate * 0.03); // 30ms
       const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-      const data = buf.getChannelData(0);
+      const d = buf.getChannelData(0);
       for(let i=0;i<len;i++){
-        const t = i/ctx.sampleRate;
-        // a high frequency click with decaying envelope + tiny noise
-        data[i] = (Math.random()*2-1) * 0.008 + Math.sin(2*Math.PI*6000*t) * Math.exp(-80*t) * 0.6;
+        const t = i / ctx.sampleRate;
+        // decaying noise + short high freq component for metallic click
+        d[i] = (Math.random()*2-1) * 0.02 * Math.exp(-40*t) + Math.sin(2*Math.PI*6500*t)*Math.exp(-80*t)*0.5;
       }
       return buf;
     }
-    function playTick(){
-      if(!audioCtx) return;
-      const src = audioCtx.createBufferSource();
-      src.buffer = tickBuffer;
-      const g = audioCtx.createGain(); g.gain.value = 0.95;
-      src.connect(g); g.connect(masterGain);
-      src.start();
+
+    async function decodeUploadToBuffer(file){
+      if(!file) return null;
+      ensureAudioContext();
+      const data = await file.arrayBuffer();
+      try {
+        return await audioCtx.decodeAudioData(data.slice(0));
+      } catch(e){
+        console.warn('decode failed', e);
+        return null;
+      }
     }
 
-    /* ========= spin logic: controlled 20s easing ========= */
+    // Play a single click using either uploaded clickBuffer or generated one. Accept volume param.
+    function playClick(volume){
+      if(!audioCtx || !clickBuffer) return;
+      const src = audioCtx.createBufferSource();
+      src.buffer = clickBuffer;
+      const g = audioCtx.createGain();
+      g.gain.value = (typeof volume === 'number') ? volume : getClickVolume();
+      src.connect(g); g.connect(masterGain);
+      src.start();
+      // small pointer vibration animation
+      animatePointerTick();
+    }
 
-    // easing function - smooth fast start then slow (easeOutCubic)
-    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+    // Play applause buffer or generated applause
+    function playApplause(volume){
+      if(!audioCtx) return;
+      if(applauseBuffer){
+        const src = audioCtx.createBufferSource();
+        src.buffer = applauseBuffer;
+        const g = audioCtx.createGain(); g.gain.value = (typeof volume === 'number')?volume:getApplauseVolume();
+        src.connect(g); g.connect(masterGain);
+        src.start();
+      } else {
+        // generate short applause bursts via noise buffers
+        const now = audioCtx.currentTime;
+        for(let i=0;i<6;i++){
+          const len = audioCtx.sampleRate * 0.12;
+          const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+          const ch = buf.getChannelData(0);
+          for(let j=0;j<ch.length;j++){
+            ch[j] = (Math.random()*2-1) * Math.exp(-6 * j / ch.length) * 0.25;
+          }
+          const s = audioCtx.createBufferSource();
+          s.buffer = buf;
+          const g = audioCtx.createGain(); g.gain.value = ((typeof volume === 'number')?volume:getApplauseVolume()) * (1 - i/10);
+          s.connect(g); g.connect(masterGain);
+          s.start(now + i * 0.06);
+        }
+      }
+    }
 
-    // compute which segment is under pointer given a wheel rotation angle (in degrees)
+    // pointer animation when a peg clicks the pointer
+    let pointerTickTimeout = null;
+    function animatePointerTick(){
+      pointerWrap.classList.add('pointer--tick');
+      clearTimeout(pointerTickTimeout);
+      pointerTickTimeout = setTimeout(()=>{
+        pointerWrap.classList.remove('pointer--tick');
+      }, 120);
+    }
+
+    /* ========= spin math & animation (20s exact) ========= */
     function normalizeAngle(a){ return ((a % 360) + 360) % 360; }
     function sliceAngle(){ return 360 / Math.max(entries.length, 1); }
 
-    // pointer is at top (0deg). When wheel is rotated by angle degrees clockwise,
-    // the label index at pointer is computed as:
     function segmentAtPointer(angle){
       const a = normalizeAngle(angle);
       const slice = sliceAngle();
-      // middle of segment i is at - (i*slice + slice/2) degrees rotation; rearrange:
-      // adj = (360 - a + slice/2) mod 360; idx = floor(adj / slice)
       const adj = normalizeAngle(360 - a + slice/2);
       let idx = Math.floor(adj / slice);
       if(entries.length === 0) idx = 0;
@@ -772,42 +974,9 @@
       return idx;
     }
 
-    // Start spin: compute totalDegrees and animate over exactly SPIN_DURATION ms
-    function startSpin(totalRotations /* optional overrides */){
-      if(spinning) return; // prevent concurrent spins
-      // prepare audio
-      ensureAudioContext();
-      if(audioCtx.state === 'suspended') audioCtx.resume();
-
-      // set start state
-      spinStartTime = performance.now();
-      // current angle from transform
-      const cur = getCurrentWheelAngle();
-      spinStartAngle = cur;
-      // choose random rotations if not provided
-      const minRot = 8; // start fairly lively (8 rotations)
-      const maxRot = 18; // up to 18 rotations - total degrees later multiplied
-      const rotations = typeof totalRotations === 'number' ? totalRotations : (Math.random() * (maxRot - minRot) + minRot);
-      // add a random extra offset for unpredictability
-      const randOffset = Math.random() * 360;
-      spinTotalDegrees = rotations * 360 + randOffset;
-      // ensure positive direction chosen randomly
-      if(Math.random() > 0.5) spinTotalDegrees *= -1;
-
-      // controls
-      spinning = true;
-      lastSegmentUnderPointer = null;
-      disableControlsDuringSpin(true);
-      announcement.textContent = 'Spinning...';
-
-      // start frame loop
-      if(!raf) raf = requestAnimationFrame(spinFrame);
-    }
-
     function getCurrentWheelAngle(){
       const st = window.getComputedStyle(wheel).transform;
       if(!st || st === 'none') return 0;
-      // matrix(a,b,c,d,tx,ty) => angle = atan2(b,a) in radians
       const m = st.match(/^matrix\((.+)\)$/);
       if(m){
         const parts = m[1].split(',').map(s=>parseFloat(s));
@@ -820,31 +989,6 @@
 
     function setWheelAngle(angle){
       wheel.style.transform = `rotate(${angle}deg)`;
-    }
-
-    function spinFrame(now){
-      const elapsed = now - spinStartTime;
-      const t = Math.min(1, elapsed / SPIN_DURATION);
-      const eased = easeOutCubic(t);
-      const currentAngle = spinStartAngle + spinTotalDegrees * eased;
-      setWheelAngle(currentAngle);
-      // tick per segment boundary crossing
-      const seg = segmentAtPointer(currentAngle);
-      if(lastSegmentUnderPointer === null) lastSegmentUnderPointer = seg;
-      if(seg !== lastSegmentUnderPointer){
-        playTick();
-        lastSegmentUnderPointer = seg;
-      }
-      if(t >= 1){
-        // end of spin exactly when elapsed >= SPIN_DURATION
-        spinning = false;
-        raf = null;
-        handleSpinEnd(currentAngle);
-        // re-enable controls
-        disableControlsDuringSpin(false);
-        return;
-      }
-      raf = requestAnimationFrame(spinFrame);
     }
 
     function disableControlsDuringSpin(flag){
@@ -862,30 +1006,98 @@
       }
     }
 
+    // Start a new spin: calculates spinTotalDegrees and drives spinFrame RAF for exactly SPIN_DURATION
+    function startSpin(totalRotationsOverride){
+      if(spinning) return;
+      ensureAudioContext();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+
+      spinStartTime = performance.now();
+      spinStartAngle = getCurrentWheelAngle();
+      // rotations: random in range to get lively start
+      const minRot = 8, maxRot = 18;
+      const rotations = (typeof totalRotationsOverride === 'number') ? totalRotationsOverride : (Math.random() * (maxRot - minRot) + minRot);
+      const randOffset = Math.random() * 360;
+      spinTotalDegrees = rotations * 360 + randOffset;
+      if(Math.random() > 0.5) spinTotalDegrees *= -1;
+
+      spinning = true;
+      lastSegmentUnderPointer = null;
+      lastFrameTime = performance.now();
+      disableControlsDuringSpin(true);
+      announcement.textContent = 'Spinning...';
+
+      if(!raf) raf = requestAnimationFrame(spinFrame);
+    }
+
+    // spinFrame: called each RAF, compute eased progress, set rotation, detect segment crossing, play click
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function spinFrame(now){
+      const elapsed = now - spinStartTime;
+      const t = Math.min(1, elapsed / SPIN_DURATION);
+      const eased = easeOutCubic(t);
+      const currentAngle = spinStartAngle + spinTotalDegrees * eased;
+      setWheelAngle(currentAngle);
+
+      // detect segment crossing and play click when crossing under the fixed pointer
+      const seg = segmentAtPointer(currentAngle);
+      if(lastSegmentUnderPointer === null) lastSegmentUnderPointer = seg;
+      if(seg !== lastSegmentUnderPointer){
+        // volume scaled slightly by current angular speed (approx)
+        if(clickEnabledCheckbox.checked){
+          // compute instantaneous angular speed (deg/sec) approximation
+          const nowTime = performance.now();
+          const dt = Math.max( (nowTime - (lastFrameTime || nowTime)) / 1000, 0.001 );
+          const deltaAngle = Math.abs((currentAngle - (spinStartAngle || currentAngle)));
+          // Use click volume setting; at high freq the ticks will naturally be rapid
+          playClick(getClickVolume());
+        }
+        lastSegmentUnderPointer = seg;
+      }
+
+      lastFrameTime = now;
+
+      if(t >= 1){
+        // end spin exactly when time >= SPIN_DURATION
+        spinning = false;
+        raf = null;
+        handleSpinEnd(currentAngle);
+        disableControlsDuringSpin(false);
+        return;
+      }
+      raf = requestAnimationFrame(spinFrame);
+    }
+
     function handleSpinEnd(finalAngle){
-      // snap precisely to center of segment under pointer
       const idx = segmentAtPointer(finalAngle);
       selectedIndex = idx;
       const slice = sliceAngle();
       const targetAngle = normalizeAngle(360 - (idx * slice + slice/2));
-      // compute smallest rotation difference
       const current = normalizeAngle(finalAngle);
       let diff = targetAngle - current;
       if(diff > 180) diff -= 360;
       if(diff < -180) diff += 360;
       const snapped = finalAngle + diff;
-      // animate small snap for polish (200ms)
+      // small snap for polish
       wheel.style.transition = 'transform 300ms cubic-bezier(.2,.9,.25,1)';
       setWheelAngle(snapped);
       setTimeout(()=>{
         wheel.style.transition = '';
-        // announce winner and show popup
+        // final satisfying click
+        if(clickEnabledCheckbox.checked) playClick(getClickVolume()*1.15);
+        // winner logic
         winner = entries[idx];
         showWinnerPopup(idx);
-        // produce celebration and confetti etc (kept minimal here so as not to break)
         startConfetti();
-        // play applause or jingle via audioCtx if present
-        if(audioCtx) playApplauseOrJingle();
+        if(audioCtx) {
+          // play applause if available
+          playApplause(getApplauseVolume());
+        }
+        // record history
+        const rec = { name: winner ? winner.name : `Entry ${idx+1}`, url: winner ? (winner.url||'') : '', time: new Date().toLocaleString() };
+        pushWinnerHistory(rec);
+        renderWinnerHistory();
       }, 320);
     }
 
@@ -898,6 +1110,7 @@
         openLinkBtn.onclick = ()=> { window.open(entry.url, '_blank'); };
       } else {
         openLinkBtn.style.display = 'none';
+        openLinkBtn.onclick = null;
       }
       winnerOverlay.style.display = 'flex';
       winnerOverlay.setAttribute('aria-hidden','false');
@@ -909,13 +1122,11 @@
 
     popupSpinAgain.addEventListener('click', ()=>{
       hideWinnerPopup();
-      // start a fresh 20s spin from current wheel angle
       startSpin();
     });
     closePopup.addEventListener('click', ()=> hideWinnerPopup());
-    openLinkBtn.addEventListener('click', ()=> { /* handled by onclick set above */ });
 
-    /* ========= entry management UI ========= */
+    /* ========= entry management UI (reuse existing functions) ========= */
     function renderEntryList(){
       entryList.innerHTML = '';
       entries.forEach((e, idx) => {
@@ -933,7 +1144,8 @@
           entryUrlInput.value = e.url || '';
           addBtn.textContent = 'UPDATE ENTRY';
           addBtn.dataset.editIndex = idx;
-          window.scrollTo({top:0, behavior:'smooth'});
+          // bring settings into view
+          openSettings();
         });
         const del = document.createElement('button');
         del.className = 'btn secondary'; del.textContent = 'DELETE';
@@ -973,104 +1185,44 @@
 
     saveBtn.addEventListener('click', ()=>{ saveEntriesToStorage(); alert('Entries saved to localStorage.'); });
 
-    /* ========= music upload / toggle ========= */
-    uploadMusic.addEventListener('change', async (e)=>{
+    /* ========= sound file uploads & preview ========= */
+    uploadClick.addEventListener('change', async (e)=>{
       const file = e.target.files[0];
       if(!file) return;
       ensureAudioContext();
-      const data = await file.arrayBuffer();
-      try{
-        uploadedMusicBuffer = await audioCtx.decodeAudioData(data.slice(0));
-        alert('Music uploaded and ready. Toggle MUSIC ON to play it.');
-      }catch(err){ console.warn(err); alert('Failed to decode uploaded music.'); }
+      const buf = await decodeUploadToBuffer(file);
+      if(buf){
+        clickBuffer = buf;
+        alert('Custom ratchet uploaded and will be used for clicks.');
+      } else {
+        alert('Failed to decode uploaded ratchet sample.');
+      }
     });
 
-    musicToggle.addEventListener('click', async ()=>{
+    previewClickBtn.addEventListener('click', ()=>{
       ensureAudioContext();
-      if(audioCtx.state === 'suspended') await audioCtx.resume();
-      if(musicSource || uploadedMusicBuffer){
-        // toggle existing music off
-        stopMusic();
-        musicToggle.textContent = 'MUSIC: OFF';
+      playClick(getClickVolume());
+    });
+
+    uploadApplause.addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      ensureAudioContext();
+      const buf = await decodeUploadToBuffer(file);
+      if(buf){
+        applauseBuffer = buf;
+        alert('Applause uploaded and will play on winner.');
       } else {
-        // start music (uploaded or simple generated)
-        if(uploadedMusicBuffer){
-          musicSource = audioCtx.createBufferSource();
-          musicSource.buffer = uploadedMusicBuffer;
-          musicSource.loop = true;
-          musicSource.connect(musicGain);
-          musicSource.start();
-        } else {
-          startGeneratedMusic();
-        }
-        musicToggle.textContent = 'MUSIC: ON';
+        alert('Failed to decode uploaded applause.');
       }
     });
 
-    function stopMusic(){
-      if(musicSource){
-        try{ musicSource.stop(); }catch(e){}
-        musicSource.disconnect();
-        musicSource = null;
-      }
-      stopGeneratedMusic();
-      musicToggle.textContent = 'MUSIC: OFF';
-    }
-
-    // generated ambient music (fallback)
-    let padOsc1=null, padOsc2=null, padGain=null;
-    function startGeneratedMusic(){
-      if(!audioCtx) return;
-      padGain = audioCtx.createGain(); padGain.gain.value = 0;
-      padGain.connect(musicGain);
-      padOsc1 = audioCtx.createOscillator(); padOsc2 = audioCtx.createOscillator();
-      padOsc1.type = 'sine'; padOsc2.type = 'sine';
-      padOsc1.frequency.value = 220; padOsc2.frequency.value = 330;
-      padOsc1.connect(padGain); padOsc2.connect(padGain);
-      padOsc1.start(); padOsc2.start();
-      padGain.gain.linearRampToValueAtTime(parseFloat(volumeSlider.value) * 0.6, audioCtx.currentTime + 1.2);
-    }
-    function stopGeneratedMusic(){
-      if(padGain){
-        padGain.gain.cancelScheduledValues(audioCtx.currentTime);
-        padGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
-        setTimeout(()=>{ try{ padOsc1.stop(); padOsc2.stop(); }catch(e){}; padOsc1=padOsc2=padGain=null; }, 900);
-      }
-    }
-
-    volumeSlider.addEventListener('input', ()=>{
-      if(!audioCtx) return;
-      if(musicGain) musicGain.gain.value = parseFloat(volumeSlider.value);
+    previewApplauseBtn.addEventListener('click', ()=>{
+      ensureAudioContext();
+      playApplause(getApplauseVolume());
     });
 
-    /* ========= tick + applause ======== */
-    function playApplauseOrJingle(){
-      if(!audioCtx) return;
-      if(applauseBuffer){
-        const src = audioCtx.createBufferSource();
-        src.buffer = applauseBuffer;
-        const g = audioCtx.createGain(); g.gain.value = 0.9;
-        src.connect(g); g.connect(masterGain);
-        src.start();
-      } else {
-        // small generated applause-like burst + jingle
-        // quick noise bursts
-        const now = audioCtx.currentTime;
-        for(let i=0;i<6;i++){
-          const len = audioCtx.sampleRate * 0.12;
-          const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-          const ch = buf.getChannelData(0);
-          for(let j=0;j<ch.length;j++) ch[j] = (Math.random()*2-1) * Math.exp(-6*j/ch.length) * 0.25;
-          const s = audioCtx.createBufferSource();
-          s.buffer = buf;
-          const g = audioCtx.createGain(); g.gain.value = 0.15 * (1 - i/10);
-          s.connect(g); g.connect(masterGain);
-          s.start(now + i * 0.06);
-        }
-      }
-    }
-
-    /* ========= confetti (kept same as prior) ========= */
+    /* ========= confetti rendering ========= */
     function resizeConfetti(){ confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
     window.addEventListener('resize', resizeConfetti);
     resizeConfetti();
@@ -1123,7 +1275,7 @@
       if(confettiParticles.length > 0) requestAnimationFrame(confettiLoop);
     }
 
-    /* ========= gestures for fling/drag (optional) ========= */
+    /* ========= drag/fling (preserve) ========= */
     (function addDragAndFling(){
       let down = false, sx=0, sy=0, st=0, startAngle=0;
       wheel.addEventListener('pointerdown', (e)=>{
@@ -1135,7 +1287,6 @@
       window.addEventListener('pointermove', (e)=>{
         if(!down) return;
         const dx = e.clientX - sx;
-        // small drag rotates wheel
         const newAngle = startAngle + dx * 0.35;
         setWheelAngle(newAngle);
       });
@@ -1146,13 +1297,9 @@
         const dx = e.clientX - sx;
         const vx = dx / Math.max(dt, 0.01) * 2.0;
         if(Math.abs(vx) > 600){
-          // treat as fling: convert to totalDegrees to complete in SPIN_DURATION
-          // map vx to rotations
           const rotations = Math.min(30, Math.max(6, Math.abs(vx) / 200));
           let totalDeg = rotations * 360 + Math.random()*360;
           if(vx < 0) totalDeg *= -1;
-          // start a controlled 20s spin with this many rotations
-          // set spinTotalDegrees accordingly
           spinStartTime = performance.now();
           spinStartAngle = getCurrentWheelAngle();
           spinTotalDegrees = totalDeg;
@@ -1165,23 +1312,70 @@
       });
     })();
 
-    /* ========= initialization & helpers ========= */
+    /* ========= settings open/close & fullscreen ========= */
+    function openSettings(){
+      settingsPanel.classList.add('open');
+      settingsPanel.setAttribute('aria-hidden','false');
+      // render current winner history
+      renderWinnerHistory();
+    }
+    function closeSettingsPanel(){
+      settingsPanel.classList.remove('open');
+      settingsPanel.setAttribute('aria-hidden','true');
+    }
+
+    settingsBtn.addEventListener('click', openSettings);
+    closeSettings.addEventListener('click', closeSettingsPanel);
+
+    // fullscreen
+    let isFullscreen = false;
+    fsBtn.addEventListener('click', async ()=>{
+      if(!document.fullscreenElement){
+        try{
+          await document.documentElement.requestFullscreen();
+          document.body.classList.add('fullscreen');
+          isFullscreen = true;
+        }catch(e){ console.warn('Fullscreen failed', e); }
+      } else {
+        try{
+          await document.exitFullscreen();
+          document.body.classList.remove('fullscreen');
+          isFullscreen = false;
+        }catch(e){}
+      }
+    });
+
+    // view/clear history
+    viewHistoryBtn.addEventListener('click', ()=> {
+      renderWinnerHistory();
+      openSettings();
+      winnerHistoryEl.scrollIntoView({behavior:'smooth'});
+    });
+    clearHistoryBtn.addEventListener('click', ()=> {
+      if(!confirm('Clear winner history?')) return;
+      clearWinnerHistory();
+      renderWinnerHistory();
+    });
+
+    resetEntriesBtn.addEventListener('click', ()=> {
+      if(!confirm('Reset wheel entries to defaults? This will overwrite saved entries.')) return;
+      entries = DEFAULT_ENTRIES.slice();
+      saveEntriesToStorage();
+      renderEntryList();
+      renderWheel();
+    });
+
+    /* ========= init & attach controls ========= */
     function init(){
       loadEntriesFromStorage();
       renderEntryList();
       renderWheel();
-      // set up click to initialize audio context on first user interaction
-      document.addEventListener('click', ()=>{ if(!audioCtx) try{ ensureAudioContext(); }catch(e){} }, {once:true});
-      // ensure tickBuffer available if audio created
-      if(audioCtx) tickBuffer = createTickBuffer();
-      // attach control buttons
+
+      // attach main spin buttons
       spinBtn.addEventListener('click', ()=> startSpin());
-      spinAgainBtn.addEventListener('click', ()=>{
-        if(spinning) return;
-        startSpin();
-      });
+      spinAgainBtn.addEventListener('click', ()=> { if(spinning) return; startSpin(); });
+
       resetBtn.addEventListener('click', ()=>{
-        // stop spin
         spinning = false;
         if(raf){ cancelAnimationFrame(raf); raf = null; }
         wheel.style.transition = 'transform 600ms cubic-bezier(.2,.9,.25,1)';
@@ -1196,19 +1390,23 @@
         disableControlsDuringSpin(false);
         setTimeout(()=> wheel.style.transition = '', 620);
       });
-      // popup close handlers already bound
+
+      // ensure audio unlocked after first click
+      document.addEventListener('click', ()=>{ if(!audioCtx) try{ ensureAudioContext(); }catch(e){} }, {once:true});
+
+      // render winner history initially
+      renderWinnerHistory();
+
       // ensure labels update on resize
       window.addEventListener('resize', ()=> { renderWheel(); });
+
+      // previews were attached earlier
     }
 
-    // Utility: return computed wheel angle (same as getCurrentWheelAngle above)
-    // (kept for clarity)
-    // init audio tick buffer lazily
+    // initialize
     init();
 
-    // Ensure labels update whenever entries change due to outside calls:
-    // (already done in add/delete/save flows)
-    // Expose renderWheel to be callable from console if needed
+    // Expose renderWheel to console if needed
     window.renderWheel = renderWheel;
 
   })();
