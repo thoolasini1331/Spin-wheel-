@@ -38,25 +38,77 @@
       align-items:start;
     }
 
+    /* Header / brand */
     header{
       grid-column: 1 / -1;
       text-align:center;
       margin-bottom:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      flex-wrap:wrap;
+      padding:8px 12px;
     }
-    h1 {
-      font-size: clamp(22px, 3.4vw, 36px);
-      color: var(--cream);
+
+    /* New brand layout */
+    .brand-wrap{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      justify-content:center;
+      flex-wrap:nowrap;
+    }
+    .brand-logo{
+      width:88px;
+      height:auto;
+      display:block;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));
+      flex-shrink:0;
+    }
+    .brand-text {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      line-height:0.9;
+    }
+    .brand-name{
+      margin:0;
+      font-family: "Times New Roman", Times, serif;
       font-weight:700;
       font-style:italic;
+      color: var(--cream);
+      font-size: clamp(20px, 2.8vw, 36px);
       letter-spacing:1px;
-      margin-bottom:6px;
       text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 6px 18px rgba(2,2,2,0.6);
     }
+    .brand-subname{
+      font-family: "Times New Roman", Times, serif;
+      font-weight:700;
+      font-style:italic;
+      color: var(--metallic-gold);
+      font-size: clamp(12px, 1.1vw, 18px);
+      margin-top:4px;
+    }
+    .brand-tagline{
+      font-family: "Times New Roman", Times, serif;
+      font-weight:700;
+      font-style:italic;
+      color: var(--off-white);
+      font-size: 12px;
+      margin-top:6px;
+      opacity:0.95;
+    }
+
     p.subtitle {
+      width:100%;
+      margin-top:6px;
       color: var(--off-white);
       font-weight:700;
       font-style:italic;
       margin-bottom:16px;
+      text-align:center;
     }
 
     /* Left column contains the wheel and controls */
@@ -324,6 +376,10 @@
       .left{ order:1 }
       .wheel-container{ max-width:86vmin }
       .pointer{ border-left:16px solid transparent; border-right:16px solid transparent; border-bottom:30px solid var(--metallic-gold) }
+      /* Stack brand nicely on small screens */
+      header { flex-direction: column; gap:6px; padding-bottom:6px; }
+      .brand-logo{ width:72px; }
+      .brand-name{ font-size: clamp(18px, 5.4vw, 28px); }
     }
   </style>
 </head>
@@ -332,7 +388,74 @@
 
   <div class="container" role="main">
     <header>
-      <h1>OASIS RECOVERY</h1>
+      <div class="brand-wrap" role="banner" aria-label="Oasis Recovery brand">
+        <!-- Inline SVG logo (placed beside heading) -->
+        <svg class="brand-logo" viewBox="0 0 700 700" aria-label="Oasis Recovery logo" role="img" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f5d877"/>
+              <stop offset="30%" stop-color="#d4a72c"/>
+              <stop offset="70%" stop-color="#c0961d"/>
+              <stop offset="100%" stop-color="#f4d36d"/>
+            </linearGradient>
+          </defs>
+
+          <!-- outer circular ring -->
+          <circle cx="350" cy="350" r="250" fill="#f4f1ea" stroke="url(#goldGrad)" stroke-width="18"/>
+          <path d="M70 320 Q350 500 630 320" fill="none" stroke="url(#goldGrad)" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
+
+          <!-- leaves -->
+          <g fill="#063D22" stroke="#063D22" stroke-width="2" transform="translate(0,15)">
+            <path d="M115 235 C100 190, 130 170, 170 180 C145 210, 125 230, 115 235Z"/>
+            <path d="M105 300 C88 260, 120 230, 170 238 C150 275, 120 295, 105 300Z"/>
+            <path d="M515 255 C545 215, 590 205, 620 230 C585 255, 555 282, 515 255Z"/>
+            <path d="M535 300 C560 255, 605 255, 635 290 C595 316, 560 322, 535 300Z"/>
+          </g>
+
+          <!-- hands -->
+          <g fill="#063D22" stroke="#063D22" stroke-width="4" opacity="0.95">
+            <path d="M150 440 C190 415, 220 420, 245 442 C255 450, 260 470, 248 484 C228 505, 193 522, 158 514 C134 509, 130 474, 150 440Z"/>
+            <path d="M520 440 C490 412, 455 420, 430 442 C418 450, 412 470, 424 484 C444 505, 480 523, 513 514 C538 509, 545 475, 520 440Z"/>
+          </g>
+
+          <!-- psi-like inner mark -->
+          <g transform="translate(350 350)">
+            <path d="M0 -116
+                     C-58 -116, -96 -75, -96 -32
+                     C-96 12, -74 38, -28 48
+                     L-20 128
+                     L-48 128
+                     L-52 162
+                     L82 162
+                     L78 128
+                     L52 128
+                     L40 48
+                     C78 38, 96 9, 96 -32
+                     C96 -75, 58 -116, 0 -116Z
+                     M0 -82
+                     C34 -82, 60 -60, 60 -26
+                     C60 -6, 47 10, 22 18
+                     L16 72
+                     L-16 72
+                     L-22 18
+                     C-48 11, -60 -6, -60 -26
+                     C-60 -60, -34 -82, 0 -82Z"
+                  fill="url(#goldGrad)" />
+          </g>
+
+          <!-- bottom palms -->
+          <g fill="#063D22" stroke="#063D22" stroke-width="4">
+            <path d="M190 522 C215 555, 280 578, 350 580 C420 578, 485 557, 510 522 C508 560, 471 604, 350 628 C229 604, 192 560, 190 522Z"/>
+          </g>
+        </svg>
+
+        <div class="brand-text">
+          <h1 class="brand-name">OASIS</h1>
+          <div class="brand-subname">RECOVERY</div>
+          <div class="brand-tagline">RESTORE, RENEW, THRIVE</div>
+        </div>
+      </div>
+
       <p class="subtitle">Spin the Wheel — A Journey of Possibilities</p>
     </header>
 
